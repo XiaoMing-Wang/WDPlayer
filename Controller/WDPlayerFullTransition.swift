@@ -21,7 +21,7 @@ class WDPlayerFullTransition: NSObject, UIViewControllerAnimatedTransitioning {
     }
 
     func transitionDuration(using transitionContext: UIViewControllerContextTransitioning?) -> TimeInterval {
-        return 0.35
+        return 0.30
     }
 
     func animateTransition(using transitionContext: UIViewControllerContextTransitioning) {
@@ -43,10 +43,10 @@ class WDPlayerFullTransition: NSObject, UIViewControllerAnimatedTransitioning {
 
         let containerView = transitionContext.containerView
         
-        /**< 宽高互换 */
+        /**< 横屏界面还未来得及旋转 宽高是相反的 */
         let width = toView.frame.size.height
         let height = toView.frame.size.width
-       
+
         let playerWidth = playerView.frame.size.height
         let playerHeight = playerView.frame.size.width
         let originalCenterXPlay = playerView.originalCenterYPlay
@@ -56,13 +56,16 @@ class WDPlayerFullTransition: NSObject, UIViewControllerAnimatedTransitioning {
         toView.addSubview(playerView)
         containerView.addSubview(toView)
         
+        /**< 旋转缩小播放界面 让他和竖屏位置大小一致 */
         playerView.tag = WDPlayConf.playerLayerTag
         playerView.transform = CGAffineTransform.identity.rotated(by: -(CGFloat.pi / 2))
         playerView.frame = CGRect(x: 0, y: 0, width: playerWidth, height: playerHeight)
         playerView.center = CGPoint(x: originalCenterXPlay, y: playerHeight / 2)
+        
+        /**< 还原播放界面 */
         UIView.animate(withDuration: transitionDuration(using: transitionContext), delay: 0, options: .curveEaseOut) {
             toView.backgroundColor = UIColor.black.withAlphaComponent(1)
-            playerView.frame = CGRect(x: 0, y: 0, width: height, height: height * (16 / 9))
+            playerView.frame = CGRect(x: 0, y: 0, width: height, height: height * WDPlayConf.playerFullProportion)
             playerView.center = CGPoint(x: width / 2, y: height / 2)
             playerView.transform = .identity
             playerView.layoutIfNeeded()

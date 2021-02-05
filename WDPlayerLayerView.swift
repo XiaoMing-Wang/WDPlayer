@@ -59,7 +59,8 @@ extension WDPlayerLayerView {
 
     /// 显示隐藏菊花
     /// - Parameter display: display
-    func disPlayLoadingView(_ display: Bool = true, afterDelay: TimeInterval = 0.5) {
+    func disPlayLoadingView(_ display: Bool = true, afterDelay: TimeInterval = 0.65) {
+        guard WDPlayConf.supportLodaing else { return }
         display ? touchView.showLoadingView(afterDelay: afterDelay) : touchView.hiddenLoadingView()
     }
 
@@ -221,9 +222,15 @@ extension WDPlayerLayerView: WPPlayerViewBarDelegate, WDPlayerTouchViewDelegate 
 class WDPlayerLayerView: UIView {
 
     fileprivate weak var delegate: WDPlayerLayerViewDelegate? = nil
+    
+    /**< 是否处于暂停 */
     fileprivate var isSuspended: Bool = false
     fileprivate var isAnimation: Bool = false
+    
+    /**< 是否显示状态栏 */
     fileprivate var isShowToolBar: Bool = true
+    
+    /**< 手是否处于横屏 */
     fileprivate var isFullScreen: Bool = false
     fileprivate var contentModeType: WDPlayConf.ContentMode? = nil
     fileprivate weak var fullViewController: WDPlayerFullViewController? = nil

@@ -12,29 +12,22 @@ class WDPlayConf: NSObject {
     /**< 支持双击 */
     static var supportDoubleClick: Bool = true
 
+    /**< 卡顿是否转圈 */
+    static var supportLodaing: Bool = true
+
     /**< 是否显示工具栏 */
     static var showTopBar: Bool = true
     static var showToolBar: Bool = true
 
     /**< 工具栏高度 */
     static let toolBarHeight: CGFloat = 45
-    
-    /**< tag */
     static let playerLayerTag: Int = 10080
+    
+    /**< 全屏视频比例 以手机(竖屏时)宽度为基准 */
+    static let playerFullProportion: CGFloat = (16.0 / 9.0)
 
     /**< 当前播放url */
     static var currentPlayURL: String? = nil
-
-    
-
-    enum RotaryType {
-
-        /**< 竖屏 */
-        case portrait
-
-        /**< 横屏 */
-        case landscape
-    }
 
     enum ContentMode {
 
@@ -47,5 +40,5 @@ class WDPlayConf: NSObject {
         /**< 全屏不变形(裁剪) */
         case fullScreenTailor
     }
-    
+
 }

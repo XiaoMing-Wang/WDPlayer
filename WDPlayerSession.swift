@@ -148,6 +148,9 @@ class WDPlayerSession: NSObject {
     /**< 是否可以直接播放(缓冲足够) */
     fileprivate(set) var isToKeepUp: Bool = false
     fileprivate(set) var isLoadTimeControlStatus: Bool = false
+    
+    /**< 是否处于卡顿状态 */
+    fileprivate(set) var isCaton: Bool = false
 
     /**< 播放资源 */
     fileprivate(set) var playURL: String? = nil
@@ -186,18 +189,7 @@ class WDPlayerSession: NSObject {
                         self.playView.setCurrentDuration(currentDuration)
                     }
                 })
-                
-                /**< 获取时长 */
-                DispatchQueue.global().async {
-                    if let assetDuration = self.playerItem?.asset.duration {
-                        let duration = lroundf(Float(CMTimeGetSeconds(assetDuration)))
-                        self.duration = duration
-                        DispatchQueue.main.async {
-                            self.playView.setTotalDuration(duration)
-                        }
-                    }
-                }
-                                            
+                                                                   
                 status = .buffer
                 isToKeepUp = false
                 playerItem?.addObserver(self, forKeyPath: "status", options: .new, context: nil)
@@ -237,10 +229,11 @@ class WDPlayerSession: NSObject {
         /**< 播放状态 ios10+ */
         if (keyPath == "timeControlStatus") {
             if player?.timeControlStatus == .waitingToPlayAtSpecifiedRate {
-                playView.disPlayLoadingView(true)
+                isCaton = true
             } else {
-                playView.disPlayLoadingView(false)
+                isCaton = false
             }
+            playView.disPlayLoadingView(isCaton)
             isLoadTimeControlStatus = true
         }
 
@@ -248,6 +241,7 @@ class WDPlayerSession: NSObject {
         if (keyPath == "playbackBufferEmpty") {
             if playerItem?.isPlaybackBufferEmpty == true {
                 isToKeepUp = false
+                isCaton = true
             }
         }
 
@@ -255,6 +249,12 @@ class WDPlayerSession: NSObject {
         if (keyPath == "playbackLikelyToKeepUp") {
             if playerItem?.isPlaybackLikelyToKeepUp == true {
                 isToKeepUp = true
+                isCaton = false
+
+                /**< 缓冲足够假如处于暂停 需要播放的播放视频 */
+                if status == .play, player?.timeControlStatus == .paused {
+                    play()
+                }
             }
         }
         
@@ -269,12 +269,16 @@ class WDPlayerSession: NSObject {
                 getAssetDuration()
                 
             } else if playerItem?.status == .failed || playerItem?.status == .unknown {
+
                 status = .fail
                 kLogPrint("视频缓冲失败 :\(playURL!)")
                 kLogPrint("视频缓冲失败 :\(playerItem!.error.debugDescription)")
                 if (playerItem?.error as NSError?)?.code == -11829, retryCount == 0 {
-                    kLogPrint("================================")
+                    kLogPrint("重试........")
                 }
+                
+                
+                
             }
             
         }
@@ -300,7 +304,6 @@ class WDPlayerSession: NSObject {
             play()
 
         } else if isReplay == false {
-
             stop()
         }
     }
