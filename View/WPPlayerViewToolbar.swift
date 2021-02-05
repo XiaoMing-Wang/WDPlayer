@@ -54,6 +54,13 @@ class WPPlayerViewToolbar: UIView {
         }
     }
     
+    /**< 全屏 */
+    public var isFullScreen: Bool = false {
+        didSet {
+            fullButton.isSelected = isFullScreen
+        }
+    }
+    
     /**< 是否正在触摸 */
     fileprivate var isTouching: Bool = false
     fileprivate weak var delegate: WPPlayerViewBarDelegate? = nil
@@ -76,16 +83,17 @@ class WPPlayerViewToolbar: UIView {
         addSubview(fullButton)
         addSubview(progressSlider)
 
-        /**< backgroundColor = .red */
         isUserInteractionEnabled = true
-        
+        clipsToBounds = true
         automaticLayout()
     }
 
     /// 布局
     fileprivate func automaticLayout() {
         bottomShadow.snp.makeConstraints { (make) in
-            make.edges.equalTo(0)
+            make.left.right.equalTo(0)
+            make.width.equalToSuperview()
+            make.height.equalToSuperview().offset(40)
         }
 
         suspendButton.snp.makeConstraints { (make) in
@@ -154,7 +162,7 @@ class WPPlayerViewToolbar: UIView {
 
         delegate?.cancelHideToolbar()
     }
-
+    
     @objc func full() {
         fullButton.isSelected = !fullButton.isSelected
         delegate?.fullClick(isFull: fullButton.isSelected)

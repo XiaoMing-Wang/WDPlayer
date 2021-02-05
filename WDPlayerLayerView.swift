@@ -187,10 +187,12 @@ extension WDPlayerLayerView: WPPlayerViewBarDelegate, WDPlayerTouchViewDelegate 
 
     /**< 放大 */
     fileprivate func full() {
+        hiddenToolBar()
+        isFullScreen = true
+        toolbarView.isFullScreen = true
         originalSizePlay = frame.size
         originalCenterYPlay = WDPlayerAssistant.locationWindow_play(self).origin.y + (originalSizePlay.height / 2)
-        hiddenToolBar()
-
+      
         let rootViewController = UIApplication.shared.keyWindow?.rootViewController
         let fullViewController = WDPlayerFullViewController()
         fullViewController.modalPresentationStyle = .fullScreen
@@ -207,7 +209,8 @@ extension WDPlayerLayerView: WPPlayerViewBarDelegate, WDPlayerTouchViewDelegate 
     /**< 还原 */
     fileprivate func thum() {
         hiddenToolBar()
-        
+        isFullScreen = false
+        toolbarView.isFullScreen = false
         fullViewController?.dismiss(animated: true, completion: {
             self.fullViewController = nil
             self.fullConstraint(full: false)
@@ -272,22 +275,22 @@ class WDPlayerLayerView: UIView {
 
     /**< 更新约束 */
     fileprivate func fullConstraint(full: Bool = true) {
-        let toolBarHeight = WDPlayConf.toolBarHeight + (full ? 10 : 0)
         if WDPlayConf.showTopBar {
+            let barHeight = WDPlayConf.toolBarHeight + (full ? 20 : 0)
             topBar.snp.updateConstraints { (make) in
-                make.height.equalTo(toolBarHeight)
+                make.height.equalTo(barHeight)
             }
         }
 
         if WDPlayConf.showToolBar {
-            var safeBottom: CGFloat = 0
+            var safeBottom: CGFloat = 5
             if #available(iOS 11, *) {
                 safeBottom += UIApplication.shared.delegate?.window??.safeAreaInsets.bottom ?? 0
             }
-
+            toolbarView.clipsToBounds = (!full)
             toolbarView.snp.updateConstraints { (make) in
+                make.height.equalTo(WDPlayConf.toolBarHeight + (full ? 20 : 0))
                 make.bottom.equalTo((full ? -safeBottom : 0))
-                make.height.equalTo(toolBarHeight)
             }
         }
     }
