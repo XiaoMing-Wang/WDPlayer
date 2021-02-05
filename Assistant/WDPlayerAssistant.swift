@@ -35,6 +35,9 @@ class WDPlayerAssistant: NSObject {
         }
     }
 
+    /// window中的位置
+    /// - Parameter view: view
+    /// - Returns: rect
     class func locationWindow_play(_ view: UIView) -> CGRect {
         guard let window = UIApplication.shared.keyWindow else { return .zero }
         return view.convert(view.bounds, to: window)

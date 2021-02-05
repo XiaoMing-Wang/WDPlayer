@@ -70,6 +70,17 @@ extension WDPlayerSession {
         playURL = nextURL
         replaceItem()
     }
+    
+    
+    /// 设置秒数
+    /// - Parameter seconds: seconds
+    func seekSeconds(seconds: Int) {
+        player?.pause()
+        player?.seek(to: CMTimeMakeWithSeconds(Float64(seconds), preferredTimescale: 1), toleranceBefore: .zero, toleranceAfter: .zero)
+        if status == .play {
+            player?.play()
+        }
+    }
 
     /**< 释放 */
     func destruction(removeSuperview: Bool = true) {
@@ -105,9 +116,7 @@ extension WDPlayerSession {
             WDPlayConf.currentPlayURL = nil
         }
     }
-        
 }
-
 
 class WDPlayerSession: NSObject {
     
@@ -157,7 +166,7 @@ class WDPlayerSession: NSObject {
     fileprivate(set) var proxyUrl: URL? = nil
 
     /**< 失败重试次数 */
-    fileprivate var retryCount: Int = 0
+    fileprivate var retryCount: Bool = false
     fileprivate var player: AVPlayer? = nil
     fileprivate var playerLayer: AVPlayerLayer? = nil
     fileprivate var playerItem: AVPlayerItem? = nil
@@ -197,9 +206,7 @@ class WDPlayerSession: NSObject {
                 playerItem?.addObserver(self, forKeyPath: "playbackLikelyToKeepUp", options: .new, context: nil)
                 playerItem?.addObserver(self, forKeyPath: "playbackBufferFull", options: .new, context: nil)
                 player?.addObserver(self, forKeyPath: "timeControlStatus", options: .new, context: nil)
-                if stopBuffer {
-                    stop()
-                }
+                if stopBuffer { stop() }
             }
         }
     }
@@ -263,24 +270,26 @@ class WDPlayerSession: NSObject {
             if playerItem?.status == .readyToPlay, status == .play || isAutoPlay {
                 play()
                 getAssetDuration()
+                retryCount = false
                 
             } else if playerItem?.status == .readyToPlay, status == .buffer || status == .wait {
                 stop()
                 getAssetDuration()
+                retryCount = false
                 
             } else if playerItem?.status == .failed || playerItem?.status == .unknown {
-
+                
                 status = .fail
                 kLogPrint("视频缓冲失败 :\(playURL!)")
                 kLogPrint("视频缓冲失败 :\(playerItem!.error.debugDescription)")
-                if (playerItem?.error as NSError?)?.code == -11829, retryCount == 0 {
+                if (playerItem?.error as NSError?)?.code == -11829, retryCount == false, let playURL = playURL {
                     kLogPrint("重试........")
+                    retryCount = true
+                    replacePlayURL(playURL)
                 }
-                
-                
+                                
                 
             }
-            
         }
 
     }
@@ -345,11 +354,7 @@ extension WDPlayerSession: WDPlayerLayerViewDelegate {
     ///   - layerView: layerView
     ///   - currentlTime: currentlTime
     func eventValueChanged(currentlTime: Int) {
-        player?.pause()
-        player?.seek(to: CMTimeMakeWithSeconds(Float64(currentlTime), preferredTimescale: 1), toleranceBefore: .zero, toleranceAfter: .zero)
-        if status == .play {
-            player?.play()
-        }
+        seekSeconds(seconds: currentlTime)
     }
 
     

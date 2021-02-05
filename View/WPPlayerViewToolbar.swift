@@ -46,21 +46,21 @@ class WPPlayerViewToolbar: UIView {
             }
         }
     }
-    
+
     /**< 暂停 */
     public var isSuspended: Bool = false {
         didSet {
             suspendButton.isSelected = isSuspended
         }
     }
-    
+
     /**< 全屏 */
     public var isFullScreen: Bool = false {
         didSet {
             fullButton.isSelected = isFullScreen
         }
     }
-    
+
     /**< 是否正在触摸 */
     fileprivate var isTouching: Bool = false
     fileprivate weak var delegate: WPPlayerViewBarDelegate? = nil

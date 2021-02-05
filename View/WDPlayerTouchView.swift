@@ -86,7 +86,7 @@ class WDPlayerTouchView: UIView {
             make.width.height.equalTo(width)
             make.center.equalToSuperview()
         }
-        
+
         suspendButton.snp.makeConstraints { (make) in
             make.width.height.equalTo(52)
             make.center.equalToSuperview()
@@ -108,7 +108,7 @@ class WDPlayerTouchView: UIView {
         var loadingView = WDPLayLoadingView(frame: CGRect(x: 0, y: 0, width: 35, height: 35))
         return loadingView
     }()
-    
+
     /**< 暂停图标 */
     fileprivate lazy var suspendButton: UIButton = {
         var suspendButton = UIButton()
@@ -117,5 +117,5 @@ class WDPlayerTouchView: UIView {
         suspendButton.addTarget(self, action: #selector(suspend), for: .touchUpInside)
         return suspendButton
     }()
- 
+
 }

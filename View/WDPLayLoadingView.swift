@@ -11,11 +11,10 @@ class WDPLayLoadingView: UIView {
 
     fileprivate var displayLink: CADisplayLink? = nil
     fileprivate var animationLayer: CAShapeLayer? = nil
-
     fileprivate var startAngle: Double = 0
     fileprivate var endAngle: Double = 0
     fileprivate var progress: Double = 0
-    
+
     override init(frame: CGRect) {
         super.init(frame: frame)
         self.initialize()
