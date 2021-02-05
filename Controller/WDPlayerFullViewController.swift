@@ -14,13 +14,6 @@ class WDPlayerFullViewController: UIViewController {
         view.backgroundColor = .clear
         transitioningDelegate = self
     }
-
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        if let playView = view.viewWithTag(WDPlayConf.playerLayerTag) {
-            playView.frame = CGRect(x: 0, y: 0, width: UIScreen.main.bounds.size.width, height: UIScreen.main.bounds.size.height)
-        }
-    }
     
     override var shouldAutorotate: Bool {
         return false

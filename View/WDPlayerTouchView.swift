@@ -58,7 +58,6 @@ class WDPlayerTouchView: UIView {
     }
 
     @objc fileprivate func _showLoadingView() {
-        kLogPrint(2222222)
         loadingView.start()
         loadingView.isHidden = false
     }
@@ -87,7 +86,7 @@ class WDPlayerTouchView: UIView {
             make.width.height.equalTo(width)
             make.center.equalToSuperview()
         }
-
+        
         suspendButton.snp.makeConstraints { (make) in
             make.width.height.equalTo(52)
             make.center.equalToSuperview()
@@ -118,4 +117,5 @@ class WDPlayerTouchView: UIView {
         suspendButton.addTarget(self, action: #selector(suspend), for: .touchUpInside)
         return suspendButton
     }()
+ 
 }

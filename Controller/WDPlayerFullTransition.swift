@@ -42,8 +42,11 @@ class WDPlayerFullTransition: NSObject, UIViewControllerAnimatedTransitioning {
         }
 
         let containerView = transitionContext.containerView
-        let height = toView.frame.size.width
+        
+        /**< 宽高互换 */
         let width = toView.frame.size.height
+        let height = toView.frame.size.width
+       
         let playerWidth = playerView.frame.size.height
         let playerHeight = playerView.frame.size.width
         let originalCenterXPlay = playerView.originalCenterYPlay
@@ -52,15 +55,16 @@ class WDPlayerFullTransition: NSObject, UIViewControllerAnimatedTransitioning {
         toView.frame = CGRect(x: 0, y: 0, width: width, height: height)
         toView.addSubview(playerView)
         containerView.addSubview(toView)
-
+        
         playerView.tag = WDPlayConf.playerLayerTag
         playerView.transform = CGAffineTransform.identity.rotated(by: -(CGFloat.pi / 2))
         playerView.frame = CGRect(x: 0, y: 0, width: playerWidth, height: playerHeight)
         playerView.center = CGPoint(x: originalCenterXPlay, y: playerHeight / 2)
         UIView.animate(withDuration: transitionDuration(using: transitionContext), delay: 0, options: .curveEaseOut) {
-            playerView.frame = CGRect(x: 0, y: 0, width: height, height: width)
+            toView.backgroundColor = UIColor.black.withAlphaComponent(1)
+            playerView.frame = CGRect(x: 0, y: 0, width: height, height: height * (16 / 9))
             playerView.center = CGPoint(x: width / 2, y: height / 2)
-            playerView.transform = CGAffineTransform.identity
+            playerView.transform = .identity
             playerView.layoutIfNeeded()
         } completion: { _ in
             transitionContext.completeTransition(!transitionContext.transitionWasCancelled)
@@ -90,6 +94,7 @@ class WDPlayerFullTransition: NSObject, UIViewControllerAnimatedTransitioning {
         containerView.addSubview(playerView)
         
         UIView.animate(withDuration: transitionDuration(using: transitionContext), delay: 0, options: .curveEaseOut) {
+            fromView.backgroundColor = UIColor.black.withAlphaComponent(0)
             playerView.frame = CGRect(x: 0, y: 0, width: originalWidth, height: originalHeight)
             playerView.transform = CGAffineTransform.identity
             playerView.center = CGPoint(x: width / 2, y: originalCenterY)

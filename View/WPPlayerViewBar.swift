@@ -20,7 +20,7 @@ class WPPlayerViewBar: UIView {
 
     /**< 初始化 */
     fileprivate func initializationInterface() {
-        backgroundColor = .red
+        addSubview(topShadow)
         addSubview(backButton)
         addSubview(titleLabels)
         automaticLayout()
@@ -28,6 +28,11 @@ class WPPlayerViewBar: UIView {
 
     /// 布局
     fileprivate func automaticLayout() {
+        
+        topShadow.snp.makeConstraints { (make) in
+            make.edges.equalTo(0)
+        }
+
         backButton.snp.makeConstraints { (make) in
             make.left.top.bottom.equalTo(0)
             make.width.equalTo(WDPlayConf.toolBarHeight)
@@ -59,6 +64,12 @@ class WPPlayerViewBar: UIView {
         titleLabels.numberOfLines = 1
         titleLabels.text = "电影名字阿啊啊啊啊啊啊啊啊啊 ~"
         return titleLabels
+    }()
+
+    fileprivate lazy var topShadow: UIImageView = {
+        var topShadow = UIImageView()
+        topShadow.image = UIImage(named: "player_top_shadow")
+        return topShadow
     }()
 
 }

@@ -76,7 +76,7 @@ class WPPlayerViewToolbar: UIView {
         addSubview(fullButton)
         addSubview(progressSlider)
 
-        backgroundColor = .red
+        /**< backgroundColor = .red */
         isUserInteractionEnabled = true
         
         automaticLayout()
