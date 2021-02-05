@@ -71,6 +71,10 @@ extension WDPlayerSession {
         replaceItem()
     }
     
+    /// 重试
+    func retryloade() {
+        replacePlayURL(playURL)
+    }
     
     /// 设置秒数
     /// - Parameter seconds: seconds
@@ -172,6 +176,7 @@ class WDPlayerSession: NSObject {
     fileprivate var playerItem: AVPlayerItem? = nil
     fileprivate var observerAny: Any? = nil
     
+    /**< 网络 */
     convenience init(playURL: String, stopBuffer: Bool = false) {
         self.init()
         self.stopBuffer = stopBuffer
@@ -282,12 +287,11 @@ class WDPlayerSession: NSObject {
                 status = .fail
                 kLogPrint("视频缓冲失败 :\(playURL!)")
                 kLogPrint("视频缓冲失败 :\(playerItem!.error.debugDescription)")
-                if (playerItem?.error as NSError?)?.code == -11829, retryCount == false, let playURL = playURL {
+                if (playerItem?.error as NSError?)?.code == -11829, retryCount == false, let _ = playURL {
                     kLogPrint("重试........")
                     retryCount = true
-                    replacePlayURL(playURL)
+                    retryloade()
                 }
-                                
                 
             }
         }
