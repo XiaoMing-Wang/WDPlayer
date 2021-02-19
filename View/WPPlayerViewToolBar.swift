@@ -47,6 +47,15 @@ class WPPlayerViewToolBar: UIView {
             }
         }
     }
+    
+    /**< 缓冲 */
+    public var bufferTime: Int = 0 {
+        didSet {
+            guard totalTime > 0 else { return }
+            let ratio = Float(bufferTime) / Float(totalTime)
+            progressView.setProgress(ratio, animated: true)
+        }
+    }
 
     /**< 暂停 */
     public var isSuspended: Bool = false {
@@ -88,7 +97,9 @@ class WPPlayerViewToolBar: UIView {
         addSubview(startLabel)
         addSubview(endLabel)
         addSubview(fullButton)
-        addSubview(progressSlider)
+        addSubview(touchButton)
+        touchButton.addSubview(progressView)
+        touchButton.addSubview(progressSlider)
 
         isUserInteractionEnabled = true
         clipsToBounds = true
@@ -109,7 +120,7 @@ class WPPlayerViewToolBar: UIView {
             make.width.equalTo(WDPlayConf.toolBarHeight)
         }
 
-        let width = startLabel.width
+        let width = startLabel.frame.size.width
         startLabel.text = "00:00"
         startLabel.snp.makeConstraints { (make) in
             make.left.equalTo(suspendButton.snp.right).offset(3)
@@ -123,16 +134,27 @@ class WPPlayerViewToolBar: UIView {
             make.width.equalTo(WDPlayConf.toolBarHeight)
         }
 
+        let endWidth = endLabel.frame.size.width
         endLabel.snp.makeConstraints { (make) in
             make.right.equalTo(fullButton.snp.left).offset(-3)
             make.centerY.equalTo(suspendButton)
+            make.width.equalTo(endWidth)
         }
-
-        progressSlider.snp.makeConstraints { (make) in
+        
+        touchButton.snp.makeConstraints { (make) in
             make.top.bottom.equalTo(0)
             make.left.equalTo(startLabel.snp.right).offset(10)
             make.right.equalTo(endLabel.snp.left).offset(-10)
-            make.centerY.equalTo(suspendButton).offset(-1)
+        }
+
+        progressView.snp.makeConstraints { (make) in
+            make.height.equalTo(3)
+            make.left.centerY.equalToSuperview()
+            make.right.equalToSuperview()
+        }
+
+        progressSlider.snp.makeConstraints { (make) in
+            make.edges.equalTo(0)
         }
     }
     
@@ -149,6 +171,10 @@ class WPPlayerViewToolBar: UIView {
         isSuspended = suspendButton.isSelected
         delegate?.suspended(isSuspended: isSuspended)
         delegate?.cancelHideToolbar()
+    }
+    
+    @objc func eventTouchUpInside() {
+       
     }
     
     @objc func eventValueChanged() {
@@ -206,7 +232,8 @@ class WPPlayerViewToolBar: UIView {
         endLabel.font = .systemFont(ofSize: 12)
         endLabel.textColor = .white
         endLabel.numberOfLines = 1
-        endLabel.text = "00:00"
+        endLabel.text = "44:44"
+        endLabel.sizeToFit()
         return endLabel
     }()
 
@@ -215,6 +242,21 @@ class WPPlayerViewToolBar: UIView {
         fullButton.setImage(UIImage(named: "player_fullscreen"), for: .normal)
         fullButton.addTarget(self, action: #selector(full), for: .touchUpInside)
         return fullButton
+    }()
+      
+    fileprivate lazy var touchButton: UIButton = {
+        var touchButton = UIButton()
+        /**< touchButton.addTarget(self, action: #selector(eventTouchUpInside), for: .touchUpInside) */
+        return touchButton
+    }()
+
+    fileprivate lazy var progressView: UIProgressView = {
+        var progressView = UIProgressView(progressViewStyle: .default)
+        progressView.progress = 0
+        progressView.progressTintColor = .white
+        progressView.isUserInteractionEnabled = false
+        progressView.trackTintColor = UIColor.white.withAlphaComponent(0.5)
+        return progressView
     }()
 
     fileprivate lazy var progressSlider: UISlider = {

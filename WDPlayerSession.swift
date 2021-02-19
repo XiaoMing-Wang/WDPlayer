@@ -99,6 +99,7 @@ extension WDPlayerSession {
             playerItem?.removeObserver(self, forKeyPath: "playbackBufferEmpty")
             playerItem?.removeObserver(self, forKeyPath: "playbackLikelyToKeepUp")
             playerItem?.removeObserver(self, forKeyPath: "playbackBufferFull")
+            playerItem?.removeObserver(self, forKeyPath: "loadedTimeRanges")
             player?.removeObserver(self, forKeyPath: "timeControlStatus")
         } catch { }
 
@@ -210,6 +211,7 @@ class WDPlayerSession: NSObject {
                 playerItem?.addObserver(self, forKeyPath: "playbackBufferEmpty", options: .new, context: nil)
                 playerItem?.addObserver(self, forKeyPath: "playbackLikelyToKeepUp", options: .new, context: nil)
                 playerItem?.addObserver(self, forKeyPath: "playbackBufferFull", options: .new, context: nil)
+                playerItem?.addObserver(self, forKeyPath: "loadedTimeRanges", options: .new, context: nil)
                 player?.addObserver(self, forKeyPath: "timeControlStatus", options: .new, context: nil)
                 if stopBuffer { stop() }
             }
@@ -235,7 +237,13 @@ class WDPlayerSession: NSObject {
 
         /**< 缓冲区域 */
         if (keyPath == "loadedTimeRanges") {
-                        
+            let loadedTimeRanges = playerItem?.loadedTimeRanges
+            if let timeRange = loadedTimeRanges?.first?.timeRangeValue {
+                let startSeconds = CMTimeGetSeconds(timeRange.start)
+                let durationSeconds = CMTimeGetSeconds(timeRange.duration)
+                let result = Int(startSeconds + durationSeconds)
+                playView.setBufferDuration(result)
+            }
         }
 
         /**< 播放状态 ios10+ */

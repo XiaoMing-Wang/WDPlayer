@@ -58,6 +58,12 @@ extension WDPlayerLayerView {
         toolbarView.currentlTime = duration
         touchView.currentlTime = duration
     }
+    
+    /// 设置缓冲时间
+    /// - Parameter duration: duration
+    func setBufferDuration(_ duration: Int) {
+        toolbarView.bufferTime = duration
+    }
 
     /// 显示隐藏菊花
     /// - Parameter display: display
