@@ -209,7 +209,7 @@ class WPPlayerViewToolBar: UIView {
 
     func restoreUserInteractionEnabled() {
         NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(resetTouching), object: nil)
-        perform(#selector(resetTouching), with: nil, afterDelay: 0.45)
+        perform(#selector(resetTouching), with: nil, afterDelay: 0.5)
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
             self.progressSlider.isUserInteractionEnabled = true
             self.touchButton.isUserInteractionEnabled = true

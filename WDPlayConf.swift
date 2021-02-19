@@ -8,11 +8,10 @@
 import UIKit
 
 class WDPlayConf: NSObject {
-
-    static var supportDoubleClick: Bool = true /**< 是否支持双击 */
-    static var supportLodaing: Bool = true   /**< 是否卡顿转圈 */
-    static var showTopBar: Bool = true     /**< 是否显示工具栏 */
-    static var showToolBar: Bool = true  /**< 是否显示工具栏 */
+    static var supportDoubleClick: Bool = true           /**< 是否支持双击 */
+    static var supportLodaing: Bool = true               /**< 是否卡顿转圈 */
+    static var showTopBar: Bool = true                   /**< 是否显示工具栏 */
+    static var showToolBar: Bool = true                  /**< 是否显示工具栏 */
     static var supportPanGestureRecognizer: Bool = true  /**< 是否支持滑动手势 */
 
     /**< 进度调节 */
@@ -28,7 +27,6 @@ class WDPlayConf: NSObject {
 
     /**< 当前播放url */
     static var currentPlayURL: String? = nil
-
     static func barHeight() -> CGFloat {
         (safeBottom() > 0 ? 44 : 20) + 44
     }
@@ -56,10 +54,3 @@ class WDPlayConf: NSObject {
 
 }
 
-func WDPlayStatusBarHeight() -> CGFloat {
-    if #available(iOS 13, *) {
-        return UIApplication.shared.windows.first?.windowScene?.statusBarManager?.statusBarFrame.height ?? 0
-    } else {
-        return UIApplication.shared.statusBarFrame.height
-    }
-}
