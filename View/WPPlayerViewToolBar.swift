@@ -28,12 +28,13 @@ protocol WPPlayerViewBarDelegate: class {
     func fullClick(isFull: Bool)
 }
 
-class WPPlayerViewToolbar: UIView {
+class WPPlayerViewToolBar: UIView {
 
     /**< 总时间 */
     public var totalTime: Int = 0 {
         didSet {
             endLabel.text = WDPlayerAssistant.timeTranslate(totalTime)
+            progressSlider.isUserInteractionEnabled = true
         }
     }
 
@@ -59,6 +60,12 @@ class WPPlayerViewToolbar: UIView {
         didSet {
             fullButton.isSelected = isFullScreen
         }
+    }
+    
+    /**< 全屏布局 */
+    public func fullConstraint(full: Bool = true) {
+        clipsToBounds = !full
+        
     }
 
     /**< 是否正在触摸 */
@@ -88,7 +95,7 @@ class WPPlayerViewToolbar: UIView {
         automaticLayout()
     }
 
-    /// 布局
+    /**< 布局 */
     fileprivate func automaticLayout() {
         bottomShadow.snp.makeConstraints { (make) in
             make.left.right.equalTo(0)
@@ -213,6 +220,7 @@ class WPPlayerViewToolbar: UIView {
     fileprivate lazy var progressSlider: UISlider = {
         var slider = UISlider()
         slider.minimumTrackTintColor = .white
+        slider.isUserInteractionEnabled = false
         slider.addTarget(self, action: #selector(eventValueChanged), for: .valueChanged)
         slider.setThumbImage(UIImage(named: "sliderBtn"), for: .normal)
         return slider

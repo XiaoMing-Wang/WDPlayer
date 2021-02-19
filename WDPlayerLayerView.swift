@@ -49,12 +49,14 @@ extension WDPlayerLayerView {
     /// - Parameter duration: duration
     func setTotalDuration(_ duration: Int) {
         toolbarView.totalTime = duration
+        touchView.totalTime = duration
     }
 
     /// 设置当前时间
     /// - Parameter duration: duration
     func setCurrentDuration(_ duration: Int) {
         toolbarView.currentlTime = duration
+        touchView.currentlTime = duration
     }
 
     /// 显示隐藏菊花
@@ -102,33 +104,55 @@ fileprivate extension WDPlayerLayerView {
         toolbarView.isSuspended = isSuspended
         cancelHideToolbar()
     }
-
-    /**< 双击 */
-    @objc func showToolBar() {
-        NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(hiddenToolBar), object: nil)
+    
+    /**< 处理工具栏 */
+    @objc func handleBar() {
         if isShowToolBar {
-            topBar.isHidden = true
-            toolbarView.isHidden = true
+            hiddenToolBar()
         } else {
-            topBar.isHidden = false
-            toolbarView.isHidden = false
-            perform(#selector(hiddenToolBar), with: nil, afterDelay: 3)
+            showToolBar()
         }
-        isShowToolBar = !toolbarView.isHidden
     }
 
+    /**< 显示导航栏 */
+    @objc func showToolBar() {
+        cancelHideToolbar()
+        
+        if WDPlayConf.showTopBar == true {
+            topBar.snp.updateConstraints { (make) in
+                make.top.equalTo(0)
+            }
+        }
+
+        if WDPlayConf.showToolBar == true {
+            let bottom = isFullScreen ? -WDPlayConf.safeBottom() : 0
+            toolbarView.snp.updateConstraints { (make) in
+                make.bottom.equalTo(bottom)
+            }
+        }
+
+        isShowToolBar = true
+        layoutIfNeededAnimate(duration: 0.25)
+    }
+
+    /**< 隐藏导航栏 */
     @objc func hiddenToolBar() {
         NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(hiddenToolBar), object: nil)
-        UIView.animate(withDuration: 0.25) {
-            self.topBar.alpha = 0
-            self.toolbarView.alpha = 0
-        } completion: { _ in
-            self.topBar.alpha = 1
-            self.toolbarView.alpha = 1
-            self.topBar.isHidden = true
-            self.toolbarView.isHidden = true
-            self.isShowToolBar = false
+        
+        if WDPlayConf.showTopBar == true {
+            topBar.snp.updateConstraints { (make) in
+                make.top.equalTo(-topBarDistance)
+            }
         }
+
+        if WDPlayConf.showToolBar == true {
+            toolbarView.snp.updateConstraints { (make) in
+                make.bottom.equalTo(bottomBarDistance)
+            }
+        }
+       
+        isShowToolBar = false
+        layoutIfNeededAnimate(duration: 0.25)
     }
 
 }
@@ -139,7 +163,7 @@ extension WDPlayerLayerView: WPPlayerViewBarDelegate, WDPlayerTouchViewDelegate 
     /**< 单击 */
     func singleTap(touchView: WDPlayerTouchView) {
         if WDPlayConf.supportDoubleClick {
-            showToolBar()
+            handleBar()
         } else {
             suspend()
         }
@@ -159,6 +183,20 @@ extension WDPlayerLayerView: WPPlayerViewBarDelegate, WDPlayerTouchViewDelegate 
     /**< 进度滑动 */
     func eventValueChanged(currentlTime: Int) {
         delegate?.eventValueChanged(currentlTime: currentlTime)
+    }
+    
+    /**< 屏幕滑动 */
+    func eventValueChanged(touchView: WDPlayerTouchView, currentlTime: Int) {
+        delegate?.eventValueChanged(currentlTime: currentlTime)
+    }
+    
+    /**< 隐藏导航栏 */
+    func hiddenBar(touchView: WDPlayerTouchView, hidden: Bool) {
+        if hidden == false {
+            NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(hiddenToolBar), object: nil)
+        } else {
+            perform(#selector(hiddenToolBar), with: nil, afterDelay: 3)
+        }
     }
 
     /**< 暂停播放 */
@@ -188,33 +226,38 @@ extension WDPlayerLayerView: WPPlayerViewBarDelegate, WDPlayerTouchViewDelegate 
 
     /**< 放大 */
     fileprivate func full() {
-        hiddenToolBar()
+        cancelHideToolbar()
         isFullScreen = true
+        topBar.isFullScreen = true
         toolbarView.isFullScreen = true
         originalSizePlay = frame.size
         originalCenterYPlay = WDPlayerAssistant.locationWindow_play(self).origin.y + (originalSizePlay.height / 2)
-      
+
         let rootViewController = UIApplication.shared.keyWindow?.rootViewController
         let fullViewController = WDPlayerFullViewController()
         fullViewController.modalPresentationStyle = .fullScreen
         if let imaView = WDPlayerAssistant.makeImageWindow_play(rootViewController?.view) {
+            fullConstraint()
             rootViewController?.view.addSubview(imaView)
             rootViewController?.present(fullViewController, animated: true, completion: {
                 imaView.removeFromSuperview()
             })
         }
         self.fullViewController = fullViewController
-        self.fullConstraint()
+        
     }
 
     /**< 还原 */
     fileprivate func thum() {
-        hiddenToolBar()
-        isFullScreen = false
-        toolbarView.isFullScreen = false
+        cancelHideToolbar()
+        fullConstraint(full: false)
         fullViewController?.dismiss(animated: true, completion: {
             self.fullViewController = nil
-            self.fullConstraint(full: false)
+            self.originalSizePlay = .zero
+            self.originalCenterYPlay = 0
+            self.isFullScreen = false
+            self.topBar.isFullScreen = false
+            self.toolbarView.isFullScreen = false
         })
     }
 }
@@ -230,6 +273,9 @@ class WDPlayerLayerView: UIView {
     /**< 是否显示状态栏 */
     fileprivate var isShowToolBar: Bool = true
     
+    fileprivate var topBarDistance: CGFloat = 0
+    fileprivate var bottomBarDistance: CGFloat = 0
+        
     /**< 手是否处于横屏 */
     fileprivate var isFullScreen: Bool = false
     fileprivate var contentModeType: WDPlayConf.ContentMode? = nil
@@ -253,6 +299,7 @@ class WDPlayerLayerView: UIView {
         WDPlayConf.showToolBar ? addSubview(toolbarView) : ()
 
         automaticLayout()
+        cancelHideToolbar()
         setContentMode(.blackBorder)
     }
 
@@ -265,40 +312,57 @@ class WDPlayerLayerView: UIView {
             make.left.right.top.bottom.equalTo(0)
         }
 
-        if WDPlayConf.showTopBar {
+        if WDPlayConf.showTopBar == true {
             topBar.snp.makeConstraints { (make) in
                 make.left.right.top.equalTo(0)
                 make.height.equalTo(WDPlayConf.toolBarHeight)
             }
         }
 
-        if WDPlayConf.showToolBar {
+        if WDPlayConf.showToolBar  == true {
             toolbarView.snp.makeConstraints { (make) in
                 make.left.right.bottom.equalTo(0)
                 make.height.equalTo(WDPlayConf.toolBarHeight)
             }
         }
+        
+        topBarDistance = WDPlayConf.toolBarHeight
+        bottomBarDistance = WDPlayConf.toolBarHeight
     }
 
     /**< 更新约束 */
     fileprivate func fullConstraint(full: Bool = true) {
-        if WDPlayConf.showTopBar {
-            let barHeight = WDPlayConf.toolBarHeight + (full ? 20 : 0)
+        
+        /**< 顶部导航栏 */
+        if WDPlayConf.showTopBar == true {
+            topBarDistance = WDPlayConf.toolBarHeight + (full ? 20 : 0)
+            
+            topBar.fullConstraint(full: full)
             topBar.snp.updateConstraints { (make) in
-                make.height.equalTo(barHeight)
+                make.height.equalTo(topBarDistance)
             }
         }
 
-        if WDPlayConf.showToolBar {
-            var safeBottom: CGFloat = 5
-            if #available(iOS 11, *) {
-                safeBottom += UIApplication.shared.delegate?.window??.safeAreaInsets.bottom ?? 0
-            }
-            toolbarView.clipsToBounds = (!full)
+        /**< 底部导航栏 */
+        if WDPlayConf.showToolBar == true {
+            let height: CGFloat = WDPlayConf.toolBarHeight + (full ? 20 : 0)
+            let safeBottom: CGFloat = WDPlayConf.safeBottom()
+            bottomBarDistance = height + (full ? safeBottom : 0)
+            
+            toolbarView.fullConstraint(full: full)
             toolbarView.snp.updateConstraints { (make) in
-                make.height.equalTo(WDPlayConf.toolBarHeight + (full ? 20 : 0))
+                make.height.equalTo(height)
                 make.bottom.equalTo((full ? -safeBottom : 0))
             }
+        }
+
+        layoutIfNeededAnimate()
+    }
+    
+    /**< 动画转换 */
+    func layoutIfNeededAnimate(duration: TimeInterval = WDPlayConf.playerAnimationDuration) {
+        UIView.animate(withDuration: duration) {
+            self.layoutIfNeeded()
         }
     }
 
@@ -309,8 +373,8 @@ class WDPlayerLayerView: UIView {
     }()
 
     /**< 顶部工具栏 */
-    fileprivate lazy var topBar: WPPlayerViewBar = {
-        var topBar = WPPlayerViewBar(titles: "", delegate: self)
+    fileprivate lazy var topBar: WPPlayerViewTopBar = {
+        var topBar = WPPlayerViewTopBar(titles: "", delegate: self)
         return topBar
     }()
 
@@ -321,8 +385,8 @@ class WDPlayerLayerView: UIView {
     }()
 
     /**< 底部工具栏 */
-    fileprivate lazy var toolbarView: WPPlayerViewToolbar = {
-        var toolbarView = WPPlayerViewToolbar(totalTime: 0, delegate: self)
+    fileprivate lazy var toolbarView: WPPlayerViewToolBar = {
+        var toolbarView = WPPlayerViewToolBar(totalTime: 0, delegate: self)
         return toolbarView
     }()
 

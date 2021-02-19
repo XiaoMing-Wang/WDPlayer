@@ -21,7 +21,7 @@ class WDPlayerFullTransition: NSObject, UIViewControllerAnimatedTransitioning {
     }
 
     func transitionDuration(using transitionContext: UIViewControllerContextTransitioning?) -> TimeInterval {
-        return 0.30
+        return WDPlayConf.playerAnimationDuration
     }
 
     func animateTransition(using transitionContext: UIViewControllerContextTransitioning) {
@@ -65,7 +65,7 @@ class WDPlayerFullTransition: NSObject, UIViewControllerAnimatedTransitioning {
         /**< 还原播放界面 */
         UIView.animate(withDuration: transitionDuration(using: transitionContext), delay: 0, options: .curveEaseOut) {
             toView.backgroundColor = UIColor.black.withAlphaComponent(1)
-            playerView.frame = CGRect(x: 0, y: 0, width: height, height: height * WDPlayConf.playerFullProportion)
+            playerView.frame = CGRect(x: 0, y: 0, width: height, height: width - WDPlayConf.barHeight() - WDPlayConf.safeBottom())
             playerView.center = CGPoint(x: width / 2, y: height / 2)
             playerView.transform = .identity
             playerView.layoutIfNeeded()

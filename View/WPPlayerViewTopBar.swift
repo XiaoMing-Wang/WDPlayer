@@ -7,7 +7,7 @@
 
 import UIKit
 
-class WPPlayerViewBar: UIView {
+class WPPlayerViewTopBar: UIView {
 
     fileprivate var titles: String? = nil
     fileprivate weak var delegate: WPPlayerViewBarDelegate? = nil
@@ -17,7 +17,20 @@ class WPPlayerViewBar: UIView {
         self.delegate = delegate
         self.initializationInterface()
     }
+    
+    /**< 全屏 */
+    public var isFullScreen: Bool = false {
+        didSet {
+           
+        }
+    }
 
+    /**< 全屏布局 */
+    public func fullConstraint(full: Bool = true) {
+        
+        
+    }
+        
     /**< 初始化 */
     fileprivate func initializationInterface() {
         addSubview(topShadow)
@@ -26,7 +39,7 @@ class WPPlayerViewBar: UIView {
         automaticLayout()
     }
 
-    /// 布局
+    /**< 布局 */
     fileprivate func automaticLayout() {
         
         topShadow.snp.makeConstraints { (make) in

@@ -18,6 +18,11 @@ protocol WDPlayerTouchViewDelegate: class {
     /**< 开始 */
     func resumePlay(touchView: WDPlayerTouchView)
 
+    /**< 进度回调 */
+    func eventValueChanged(touchView: WDPlayerTouchView, currentlTime: Int)
+    
+    /**< 隐藏导航栏 */
+    func hiddenBar(touchView: WDPlayerTouchView, hidden: Bool)
 }
 
 extension WDPlayerTouchView {
@@ -37,9 +42,116 @@ extension WDPlayerTouchView {
 
 }
 
+extension WDPlayerTouchView {
+    
+    /**< 滑动手势 */
+    @objc func handleSwipe(pan: UIPanGestureRecognizer) {
+      
+        /**< 速度 */
+        let velocity = pan.velocity(in: pan.view)
+        
+        /**< 位置 */
+        let location = pan.location(in: pan.view)
+        
+        /**< 开始触摸判断方向 */
+        if (pan.state == .began) {
+            panDirection = .free
+            horizontalX = location.x
+            verticalY = location.y
+            slipInstantaneousTime = currentlTime
+
+            if abs(velocity.x) > abs(velocity.y) {
+                panDirection = .horizontal
+                actionProgress.currentlTime = slipInstantaneousTime
+                actionProgress.backgroundAnimation()
+                actionProgress.isHidden = false
+                suspendButton.alpha = 0
+                delegate?.hiddenBar(touchView: self, hidden: false)
+                /**< kLogPrint("进度") */
+
+            } else if let view = pan.view, location.x <= view.frame.size.width / 2.0 {
+                panDirection = .verticalLeft
+                /**< kLogPrint("亮度") */
+
+            } else {
+                panDirection = .verticalRight
+                /**< kLogPrint("音量") */
+            }
+        }
+
+        /**< 滑动中 */
+        if (pan.state == .changed) {
+           
+            /**< 进度 */
+            if panDirection == .horizontal {
+                
+                /**< 位移 */
+                let displacement = location.x - horizontalX
+                let displacementABS = abs(displacement)
+                let width = pan.view?.frame.size.width ?? 0
+                let amplitude: Int = Int((displacementABS / width) * WDPlayConf.playerProgressAdjustment)
+                               
+                /**< 快进 */
+                if displacement > 0 {
+                    
+                    slipInstantaneousEndTime = min(slipInstantaneousTime + amplitude, totalTime)
+                    actionProgress.currentlTime = slipInstantaneousEndTime
+                    if slipInstantaneousEndTime >= totalTime {
+                        slipInstantaneousTime = totalTime
+                        horizontalX = location.x
+                    }
+                                        
+                } else {
+
+                    slipInstantaneousEndTime = max(slipInstantaneousTime - amplitude, 0)
+                    actionProgress.currentlTime = slipInstantaneousEndTime
+                    if slipInstantaneousEndTime <= 0 {
+                        slipInstantaneousTime = 0
+                        horizontalX = location.x
+                    }
+                }
+            }
+            
+        }
+        
+        /**< 滑动结束 */
+        if (pan.state == .ended || pan.state == .failed || pan.state == .cancelled) {
+            if pan.state == .ended, panDirection == .horizontal {
+                delegate?.eventValueChanged(touchView: self, currentlTime: slipInstantaneousEndTime)
+                actionProgress.isHidden = true
+                suspendButton.alpha = 1
+                actionProgress.backgroundAnimation(false)
+                delegate?.hiddenBar(touchView: self, hidden: true)
+            }
+
+            self.panDirection = .free
+        }
+
+       
+    }
+
+}
+
 class WDPlayerTouchView: UIView {
 
+    enum PanDirection {
+        case free
+        case horizontal //水平
+        case verticalLeft //竖直左
+        case verticalRight //竖直右
+    }
+
     fileprivate weak var delegate: WDPlayerTouchViewDelegate? = nil
+    fileprivate var panDirection: PanDirection = .free
+    fileprivate var panGestureRecognizer: UIPanGestureRecognizer? = nil
+
+    /**< 横纵向初始位置 */
+    fileprivate var horizontalX: CGFloat = 0
+    fileprivate var verticalY: CGFloat = 0
+    fileprivate var slipInstantaneousTime: Int = 0
+    fileprivate var slipInstantaneousEndTime: Int = 0
+    fileprivate var isSliding: Bool = false
+
     public var isSuspended: Bool = false {
         didSet {
             suspendButton.isHidden = !isSuspended
@@ -47,6 +159,19 @@ class WDPlayerTouchView: UIView {
                 hiddenLoadingView()
             }
         }
+    }
+    
+    /**< 总时间 */
+    public var totalTime: Int = 0 {
+        didSet {
+            actionProgress.totalTime = totalTime
+            panGestureRecognizer?.isEnabled = true
+        }
+    }
+
+    /**< 当前时间 */
+    public var currentlTime: Int = 0 {
+        didSet { }
     }
 
     convenience init(delegate: WDPlayerTouchViewDelegate?) {
@@ -75,6 +200,7 @@ class WDPlayerTouchView: UIView {
     }
 
     fileprivate func addLoadingView() {
+        addSubview(actionProgress)
         addSubview(loadingView)
         addSubview(suspendButton)
         automaticLayout()
@@ -91,16 +217,30 @@ class WDPlayerTouchView: UIView {
             make.width.height.equalTo(52)
             make.center.equalToSuperview()
         }
+
+        actionProgress.snp.makeConstraints { (make) in
+            make.edges.equalTo(0)
+        }
     }
     
     /**< 添加手势 */
     fileprivate func addGestures() {
+        
+        /**< 单击双击 */
         if WDPlayConf.supportDoubleClick {
             let singleGesture = WDPlayerAssistant.addTapGesture(self, taps: 1, touches: 1, selector: #selector(singleTap))
             let doubleGesture = WDPlayerAssistant.addTapGesture(self, taps: 2, touches: 1, selector: #selector(doubleTap))
             singleGesture.require(toFail: doubleGesture)
         } else {
             WDPlayerAssistant.addTapGesture(self, taps: 1, touches: 1, selector: #selector(doubleTap))
+        }
+
+        /**< 滑动手势 */
+        if WDPlayConf.supportPanGestureRecognizer {
+            let panGestureRecognizer = UIPanGestureRecognizer(target: self, action: #selector(handleSwipe(pan:)))
+            self.addGestureRecognizer(panGestureRecognizer)
+            self.panGestureRecognizer = panGestureRecognizer
+            self.panGestureRecognizer?.isEnabled = false
         }
     }
 
@@ -118,4 +258,13 @@ class WDPlayerTouchView: UIView {
         return suspendButton
     }()
 
+    /**< 进度调节 */
+    fileprivate lazy var actionProgress: WDPlayTouchActionProgress = {
+        var actionProgress = WDPlayTouchActionProgress(totalTime: 0)
+        actionProgress.isHidden = true
+        return actionProgress
+    }()
+
 }
+
+

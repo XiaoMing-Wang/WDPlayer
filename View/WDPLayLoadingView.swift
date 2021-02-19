@@ -14,6 +14,7 @@ class WDPLayLoadingView: UIView {
     fileprivate var startAngle: Double = 0
     fileprivate var endAngle: Double = 0
     fileprivate var progress: Double = 0
+    fileprivate var isPlaying: Bool = false
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -25,11 +26,14 @@ class WDPLayLoadingView: UIView {
     }
     
     func start() {
+        guard !isPlaying else { return }
+        isPlaying = true
         displayLink?.isPaused = false
     }
 
     func hide() {
-        progress = 0;
+        progress = 0
+        isPlaying = false
         displayLink?.isPaused = true
     }
 
