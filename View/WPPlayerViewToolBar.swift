@@ -173,27 +173,41 @@ class WPPlayerViewToolBar: UIView {
         delegate?.cancelHideToolbar()
     }
     
+    /**< 点击 */
     @objc func eventTouchUpInside() {
-       
+        if progressSlider.isTracking { return }
+
+        isTouching = true
+        progressSlider.value = touchButton.clickProportions
+        adjustProgressSlider()
+        restoreUserInteractionEnabled()
     }
-    
+
+    /**< 滑动 */
     @objc func eventValueChanged() {
         isTouching = true
-        if progressSlider.isTracking == false {
-            let value = progressSlider.value
-            let currentlTime = ceil(value * Float(totalTime))
-            let currentlTimeInt = Int(currentlTime)
-            self.currentlTime = currentlTimeInt
-            self.startLabel.text = WDPlayerAssistant.timeTranslate(currentlTimeInt)
-            self.progressSlider.isUserInteractionEnabled = false
-            delegate?.eventValueChanged(currentlTime: currentlTimeInt)
-            DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.45) {
-                self.isTouching = false
-                self.progressSlider.isUserInteractionEnabled = true
-            }
-        }
-
+        if progressSlider.isTracking == false { adjustProgressSlider() }
         delegate?.cancelHideToolbar()
+    }
+    
+    func adjustProgressSlider() {
+        let value = progressSlider.value
+        let currentlTime = ceil(value * Float(totalTime))
+        let currentlTimeInt = Int(currentlTime)
+        self.currentlTime = currentlTimeInt
+        self.startLabel.text = WDPlayerAssistant.timeTranslate(currentlTimeInt)
+        self.progressSlider.isUserInteractionEnabled = false
+        delegate?.eventValueChanged(currentlTime: currentlTimeInt)
+        restoreUserInteractionEnabled()
+    }
+    
+    func restoreUserInteractionEnabled() {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.75) {
+            self.isTouching = false
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+            self.progressSlider.isUserInteractionEnabled = true
+        }
     }
     
     @objc func full() {
@@ -244,9 +258,9 @@ class WPPlayerViewToolBar: UIView {
         return fullButton
     }()
       
-    fileprivate lazy var touchButton: UIButton = {
-        var touchButton = UIButton()
-        /**< touchButton.addTarget(self, action: #selector(eventTouchUpInside), for: .touchUpInside) */
+    fileprivate lazy var touchButton: WDPLayTouchButton = {
+        var touchButton = WDPLayTouchButton()
+        touchButton.addTarget(self, action: #selector(eventTouchUpInside), for: .touchUpInside)
         return touchButton
     }()
 
@@ -268,6 +282,20 @@ class WPPlayerViewToolBar: UIView {
         return slider
     }()
 
+}
+
+fileprivate class WDPLayTouchButton: UIButton {
+    fileprivate var clickProportions: Float = 0
+    override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
+        let view = super.hitTest(point, with: event)
+        if let slider = view as? UISlider {
+            let center = convert(point, to: view)
+            clickProportions = Float(center.x) / Float(slider.frame.size.width)
+            let distance = abs(clickProportions - slider.value)
+            return (distance <= 0.10) ? slider : self
+        }
+        return view
+    }
 }
 
 
