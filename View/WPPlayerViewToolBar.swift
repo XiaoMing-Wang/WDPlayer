@@ -203,6 +203,7 @@ class WPPlayerViewToolBar: UIView {
         self.startLabel.text = WDPlayerAssistant.timeTranslate(currentlTimeInt)
         self.progressSlider.isUserInteractionEnabled = false
         delegate?.eventValueChanged(currentlTime: currentlTimeInt)
+        delegate?.cancelHideToolbar()
         restoreUserInteractionEnabled()
     }
 

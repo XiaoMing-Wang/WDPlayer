@@ -188,7 +188,6 @@ extension WDPlayerLayerView: WPPlayerViewBarDelegate, WDPlayerTouchViewDelegate 
 
     /**< 进度滑动 */
     func eventValueChanged(currentlTime: Int) {
-        cancelHideToolbar()
         delegate?.eventValueChanged(currentlTime: currentlTime)
     }
 
