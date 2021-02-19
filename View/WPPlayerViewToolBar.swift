@@ -74,7 +74,6 @@ class WPPlayerViewToolBar: UIView {
     /**< 全屏布局 */
     public func fullConstraint(full: Bool = true) {
         clipsToBounds = !full
-        
     }
 
     /**< 是否正在触摸 */
@@ -176,6 +175,7 @@ class WPPlayerViewToolBar: UIView {
     /**< 点击 */
     @objc func eventTouchUpInside() {
         if progressSlider.isTracking { return }
+        touchButton.isUserInteractionEnabled = false
 
         isTouching = true
         progressSlider.value = touchButton.clickProportions
@@ -186,10 +186,15 @@ class WPPlayerViewToolBar: UIView {
     /**< 滑动 */
     @objc func eventValueChanged() {
         isTouching = true
-        if progressSlider.isTracking == false { adjustProgressSlider() }
+        NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(resetTouching), object: nil)
+
+        /**< 滑动结束 */
+        if progressSlider.isTracking == false {
+            adjustProgressSlider()
+        }
         delegate?.cancelHideToolbar()
     }
-    
+
     func adjustProgressSlider() {
         let value = progressSlider.value
         let currentlTime = ceil(value * Float(totalTime))
@@ -200,21 +205,25 @@ class WPPlayerViewToolBar: UIView {
         delegate?.eventValueChanged(currentlTime: currentlTimeInt)
         restoreUserInteractionEnabled()
     }
-    
+
     func restoreUserInteractionEnabled() {
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.75) {
-            self.isTouching = false
-        }
+        NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(resetTouching), object: nil)
+        perform(#selector(resetTouching), with: nil, afterDelay: 0.45)
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
             self.progressSlider.isUserInteractionEnabled = true
+            self.touchButton.isUserInteractionEnabled = true
         }
     }
-    
+
+    @objc func resetTouching() {
+        isTouching = false
+    }
+
     @objc func full() {
         fullButton.isSelected = !fullButton.isSelected
         delegate?.fullClick(isFull: fullButton.isSelected)
     }
-        
+
     fileprivate lazy var bottomShadow: UIImageView = {
         var bottomShadow = UIImageView()
         bottomShadow.image = UIImage(named: "player_bottom_shadow")
@@ -257,7 +266,7 @@ class WPPlayerViewToolBar: UIView {
         fullButton.addTarget(self, action: #selector(full), for: .touchUpInside)
         return fullButton
     }()
-      
+
     fileprivate lazy var touchButton: WDPLayTouchButton = {
         var touchButton = WDPLayTouchButton()
         touchButton.addTarget(self, action: #selector(eventTouchUpInside), for: .touchUpInside)
@@ -281,7 +290,6 @@ class WPPlayerViewToolBar: UIView {
         slider.setThumbImage(UIImage(named: "sliderBtn"), for: .normal)
         return slider
     }()
-
 }
 
 fileprivate class WDPLayTouchButton: UIButton {
