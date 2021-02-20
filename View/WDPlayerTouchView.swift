@@ -41,6 +41,14 @@ extension WDPlayerTouchView {
         loadingView.hide()
         loadingView.isHidden = true
     }
+    
+    /// 删除双击
+    func deleDoubleClick() {
+        remoGestureRecognizer(doubleGesture)
+        remoGestureRecognizer(singleGesture)
+        remoGestureRecognizer(panGestureRecognizer)
+        WDPlayerAssistant.addTapGesture(self, taps: 1, touches: 1, selector: #selector(singleTap))
+    }
 
 }
 
@@ -212,6 +220,8 @@ class WDPlayerTouchView: UIView {
 
     fileprivate weak var delegate: WDPlayerTouchViewDelegate? = nil
     fileprivate var panDirection: PanDirection = .free
+    fileprivate var singleGesture: UITapGestureRecognizer? = nil
+    fileprivate var doubleGesture: UITapGestureRecognizer? = nil
     fileprivate var panGestureRecognizer: UIPanGestureRecognizer? = nil
     fileprivate var volumeSlider: UISlider? = nil
 
@@ -315,6 +325,8 @@ class WDPlayerTouchView: UIView {
             let singleGesture = WDPlayerAssistant.addTapGesture(self, taps: 1, touches: 1, selector: #selector(singleTap))
             let doubleGesture = WDPlayerAssistant.addTapGesture(self, taps: 2, touches: 1, selector: #selector(doubleTap))
             singleGesture.require(toFail: doubleGesture)
+            self.singleGesture = singleGesture
+            self.doubleGesture = doubleGesture
         } else {
             WDPlayerAssistant.addTapGesture(self, taps: 1, touches: 1, selector: #selector(doubleTap))
         }
@@ -327,9 +339,9 @@ class WDPlayerTouchView: UIView {
             self.panGestureRecognizer?.isEnabled = false
         }
     }
-    
+            
     /**< 音量 */
-    func volumeControl() {
+    fileprivate func volumeControl() {
         let volumeView = MPVolumeView(frame: CGRect(x: -20, y: -20, width: 1, height: 1))
         for view in volumeView.subviews {
             if let volumeSlider = view as? UISlider {
@@ -359,6 +371,11 @@ class WDPlayerTouchView: UIView {
             NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(hidenDelay), object: nil)
             perform(#selector(hidenDelay), with: nil, afterDelay: 2)
         }
+    }
+
+    func remoGestureRecognizer(_ tap: UIGestureRecognizer?) {
+        guard let tap = tap else { return }
+        removeGestureRecognizer(tap)
     }
 
     fileprivate lazy var loadingView: WDPLayLoadingView = {

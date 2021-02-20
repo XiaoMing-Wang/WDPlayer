@@ -34,7 +34,7 @@ class WPPlayerViewToolBar: UIView {
     public var totalTime: Int = 0 {
         didSet {
             endLabel.text = WDPlayerAssistant.timeTranslate(totalTime)
-            progressSlider.isUserInteractionEnabled = true
+            touchButton.isUserInteractionEnabled = true
         }
     }
 
@@ -74,6 +74,13 @@ class WPPlayerViewToolBar: UIView {
     /**< 全屏布局 */
     public func fullConstraint(full: Bool = true) {
         clipsToBounds = !full
+    }
+
+    /**< 重置 */
+    func reset() {
+        progressView.progress = 0
+        progressSlider.value = 0
+        startLabel.text = "00:00"
     }
      
     fileprivate weak var delegate: WPPlayerViewBarDelegate? = nil
@@ -258,6 +265,7 @@ class WPPlayerViewToolBar: UIView {
     fileprivate lazy var touchButton: WDPLayTouchButton = {
         var touchButton = WDPLayTouchButton()
         touchButton.addTarget(self, action: #selector(eventTouchUpInside), for: .touchUpInside)
+        touchButton.isUserInteractionEnabled = false
         return touchButton
     }()
 
@@ -273,7 +281,6 @@ class WPPlayerViewToolBar: UIView {
     fileprivate lazy var progressSlider: UISlider = {
         var slider = UISlider()
         slider.minimumTrackTintColor = .white
-        slider.isUserInteractionEnabled = false
         slider.addTarget(self, action: #selector(eventValueChanged), for: .valueChanged)
         slider.setThumbImage(UIImage(named: "sliderBtn"), for: .normal)
         return slider

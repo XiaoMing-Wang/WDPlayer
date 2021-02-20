@@ -39,9 +39,9 @@ class WDPlayTouchActionProgress: UIView {
     }
         
     fileprivate func initializationInterface() {
-        self.isUserInteractionEnabled = false
-        self.addSubview(currentlTimeLabel)
-        self.addSubview(totalTimeLabel)
+        isUserInteractionEnabled = false
+        addSubview(currentlTimeLabel)
+        addSubview(totalTimeLabel)
         automaticLayout()
     }
 

@@ -6,6 +6,8 @@
 //
 
 import UIKit
+import Kingfisher
+import AVFoundation
 
 class WDPlayerAssistant: NSObject {
 
@@ -43,6 +45,15 @@ class WDPlayerAssistant: NSObject {
         return view.convert(view.bounds, to: window)
     }
     
+    /**< 获取第一帧图片 */
+    class func currentImage(currentItem: AVPlayerItem?) -> UIImage? {
+        guard let playerItem = currentItem else { return nil }
+        guard let cgImage = try? AVAssetImageGenerator(asset: playerItem.asset).copyCGImage(at: CMTimeMakeWithSeconds(1, preferredTimescale: 1), actualTime: nil) else {
+            return nil
+        }
+        return UIImage(cgImage: cgImage)
+    }
+
     /**< 截图 */
     class func makeImageWindow_play(_ view: UIView?) -> UIImageView? {
         guard let view = view else { return nil }
@@ -57,6 +68,28 @@ class WDPlayerAssistant: NSObject {
         return imageView
     }
 
+    /**< 缓存图片 */
+    class func cacheImage(image: UIImage?, forkey: String?) {
+        guard let image = image, let forkey = forkey else { return }
+        ImageCache.default.store(image, forKey: forkey)
+    }
+
+    /**< 设置图片 */
+    class func setImage(imageView: UIImageView?, forkey: String?, local: Bool) {
+        guard let imageView = imageView, let forkey = forkey else { return }
+        
+        /**< 本地 */
+        if  local,
+            ImageCache.default.retrieveImageInMemoryCache(forKey: forkey) == nil,
+            ImageCache.default.retrieveImageInDiskCache(forKey: forkey) == nil {
+            return
+        }
+        
+        if let url = URL(string: forkey) {
+            imageView.kf.setImage(with: url)
+        }
+    }
+
     /**< 状态栏高度 */
     fileprivate class func barHeight_play() -> CGFloat {
         if #available(iOS 13, *) {
@@ -65,4 +98,8 @@ class WDPlayerAssistant: NSObject {
             return UIApplication.shared.statusBarFrame.height
         }
     }
+    
+    
+    
+       
 }

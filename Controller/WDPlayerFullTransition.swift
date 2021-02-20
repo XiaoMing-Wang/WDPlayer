@@ -50,7 +50,7 @@ class WDPlayerFullTransition: NSObject, UIViewControllerAnimatedTransitioning {
         let playerWidth = playerView.frame.size.height
         let playerHeight = playerView.frame.size.width
         let originalCenterXPlay = playerView.originalCenterYPlay
-
+        
         /**< 横屏toView还未来得及切换宽高 */
         toView.frame = CGRect(x: 0, y: 0, width: width, height: height)
         toView.addSubview(playerView)

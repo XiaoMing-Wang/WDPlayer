@@ -28,7 +28,7 @@ POSSIBILITY OF SUCH DAMAGE.
 import SystemConfiguration
 import Foundation
 
-public enum ReachabilityError: Error {
+public enum WDPLayReachabilityError: Error {
     case failedToCreateWithAddress(sockaddr, Int32)
     case failedToCreateWithHostname(String, Int32)
     case unableToSetCallback(Int32)
@@ -142,7 +142,7 @@ public class WDPlayerReachability {
                             targetQueue: DispatchQueue? = nil,
                             notificationQueue: DispatchQueue? = .main) throws {
         guard let ref = SCNetworkReachabilityCreateWithName(nil, hostname) else {
-            throw ReachabilityError.failedToCreateWithHostname(hostname, SCError())
+            throw WDPLayReachabilityError.failedToCreateWithHostname(hostname, SCError())
         }
         self.init(reachabilityRef: ref, queueQoS: queueQoS, targetQueue: targetQueue, notificationQueue: notificationQueue)
     }
@@ -155,7 +155,7 @@ public class WDPlayerReachability {
         zeroAddress.sa_family = sa_family_t(AF_INET)
 
         guard let ref = SCNetworkReachabilityCreateWithAddress(nil, &zeroAddress) else {
-            throw ReachabilityError.failedToCreateWithAddress(zeroAddress, SCError())
+            throw WDPLayReachabilityError.failedToCreateWithAddress(zeroAddress, SCError())
         }
 
         self.init(reachabilityRef: ref, queueQoS: queueQoS, targetQueue: targetQueue, notificationQueue: notificationQueue)
@@ -209,12 +209,12 @@ public extension WDPlayerReachability {
 
         if !SCNetworkReachabilitySetCallback(reachabilityRef, callback, &context) {
             stopNotifier()
-            throw ReachabilityError.unableToSetCallback(SCError())
+            throw WDPLayReachabilityError.unableToSetCallback(SCError())
         }
 
         if !SCNetworkReachabilitySetDispatchQueue(reachabilityRef, reachabilitySerialQueue) {
             stopNotifier()
-            throw ReachabilityError.unableToSetDispatchQueue(SCError())
+            throw WDPLayReachabilityError.unableToSetDispatchQueue(SCError())
         }
 
         // Perform an initial check
@@ -259,7 +259,7 @@ fileprivate extension WDPlayerReachability {
             var flags = SCNetworkReachabilityFlags()
             if !SCNetworkReachabilityGetFlags(self.reachabilityRef, &flags) {
                 self.stopNotifier()
-                throw ReachabilityError.unableToGetFlags(SCError())
+                throw WDPLayReachabilityError.unableToGetFlags(SCError())
             }
             
             self.flags = flags

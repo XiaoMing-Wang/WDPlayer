@@ -9,6 +9,27 @@ import UIKit
 import AVFoundation
 import KTVHTTPCache
 
+@objc protocol WDPlayerSessionDelegate {
+
+    /**< 缓冲失败(链接失效) */
+    @objc optional func bufferFail(play: WDPlayerSession)
+
+    /**< 缓冲成功(表示这个视频可以播放) */
+    @objc optional func bufferSuccess(play: WDPlayerSession)
+
+    /**< 缓冲不足(显示菊花) */
+    @objc optional func bufferBufferEmpty(play: WDPlayerSession)
+
+    /**< 缓冲足够当前视频播放  */
+    @objc optional func bufferEnough(play: WDPlayerSession)
+
+    /// 进度回调
+    /// - Parameters:
+    ///   - play: 播放器
+    ///   - seconds: 进度单位秒
+    @objc optional func playProgress(play: WDPlayerSession, seconds: Int)
+}
+
 extension WDPlayerSession {
     
     /**< 播放 */
@@ -23,9 +44,8 @@ extension WDPlayerSession {
         player?.play()
         status = .play
         stopBuffer = false
-        playerItem?.preferredForwardBufferDuration = 0
-        playerItem?.preferredPeakBitRate = TimeInterval(100000)
-        
+        /**< playerItem?.preferredForwardBufferDuration = 0 */
+        /**< playerItem?.preferredPeakBitRate = TimeInterval(100000) */
         /**< 当前播放的资源 */
         WDPlayConf.currentPlayURL = playURL
     }
@@ -43,13 +63,13 @@ extension WDPlayerSession {
     func stop() {
         status = .wait
         stopBuffer = true
-        playerItem?.preferredForwardBufferDuration = TimeInterval(0.1)
-        playerItem?.preferredPeakBitRate = 1
-        playerItem?.seek(to: CMTimeMakeWithSeconds(100000, preferredTimescale: 1))
+        /**< playerItem?.preferredForwardBufferDuration = TimeInterval(0.1) */
+        /**< playerItem?.preferredPeakBitRate = 1 */
+        /**< playerItem?.seek(to: CMTimeMakeWithSeconds(100000, preferredTimescale: 1)) */
+        /**< player?.seek(to: CMTimeMakeWithSeconds(100000, preferredTimescale: 1)) */
         playerItem?.canUseNetworkResourcesForLiveStreamingWhilePaused = false
         playerItem?.cancelPendingSeeks()
         playerItem?.asset.cancelLoading()
-        player?.seek(to: CMTimeMakeWithSeconds(100000, preferredTimescale: 1))
         player?.pause()
     }
     
@@ -62,13 +82,17 @@ extension WDPlayerSession {
     
     /**< 切换 */
     func replacePlayURL(_ nextURL: String?) {
+        if nextURL == playURL, status != .fail {
+            return
+        }
+        
         guard let nextURL = nextURL else {
             destruction()
             return
         }
 
-        playURL = nextURL
-        replaceItem()
+        kLogPrint(3333333)
+        replaceItem(playURL: nextURL)
     }
     
     /// 重试
@@ -76,7 +100,7 @@ extension WDPlayerSession {
         replacePlayURL(playURL)
     }
     
-    /// 设置秒数
+    /// 快进/退
     /// - Parameter seconds: seconds
     func seekSeconds(seconds: Int) {
         isTracking = true
@@ -90,7 +114,7 @@ extension WDPlayerSession {
         perform(#selector(resetTracking), with: nil, afterDelay: 1.0)
     }
 
-    /**< 释放 */
+    /// 释放
     func destruction(removeSuperview: Bool = true) {
         if status == .background { return }
         if playerItem == nil, player == nil {
@@ -105,7 +129,7 @@ extension WDPlayerSession {
             playerItem?.removeObserver(self, forKeyPath: "playbackBufferFull")
             playerItem?.removeObserver(self, forKeyPath: "loadedTimeRanges")
             player?.removeObserver(self, forKeyPath: "timeControlStatus")
-        } catch { }
+        } catch {}
 
         if let observerAny = self.observerAny {
             player?.removeTimeObserver(observerAny)
@@ -120,6 +144,9 @@ extension WDPlayerSession {
         playerLayer = nil
         player?.replaceCurrentItem(with: nil)
         player = nil
+        playView.reset()
+        reachabilityCallBacks[playURL] = nil
+        
         NotificationCenter.default.removeObserver(self)
         if WDPlayConf.currentPlayURL == playURL, playURL != nil {
             WDPlayConf.currentPlayURL = nil
@@ -127,8 +154,10 @@ extension WDPlayerSession {
     }
 }
 
+fileprivate var reachability: WDPlayerReachability? = nil
+fileprivate var reachabilityCallBacks = [String?: () -> ()]()
 class WDPlayerSession: NSObject {
-    
+
     enum Status {
         case unknow      /**< 未知 */
         case buffer      /**< 缓冲 */
@@ -141,11 +170,18 @@ class WDPlayerSession: NSObject {
         case destruction /**< 释放无任务 */
     }
 
+    /**< 回调代理 */
+    public var delegate: WDPlayerSessionDelegate? = nil
+
     /**< 播放view */
     public var playView: WDPlayerLayerView = WDPlayerLayerView()
 
-    /**< 封面url */
-    public var coverURL: URL? = nil
+    /**< 是否获取第一帧 */
+    public var getFirstRate: Bool = false {
+        didSet {
+            if getFirstRate { setCover() }
+        }
+    }
 
     /**< 自动播放 */
     public var isAutoPlay: Bool = true
@@ -156,7 +192,7 @@ class WDPlayerSession: NSObject {
     /**< 总时长 */
     fileprivate(set) var duration: Int = -1
     fileprivate(set) var currentDuration: Int = 0
-
+    
     /**< 播放状态 */
     fileprivate(set) var status: Status = .unknow
 
@@ -181,36 +217,58 @@ class WDPlayerSession: NSObject {
     fileprivate var playerLayer: AVPlayerLayer? = nil
     fileprivate var playerItem: AVPlayerItem? = nil
     fileprivate var observerAny: Any? = nil
-    
+    fileprivate var reachabilityCallBack: (() -> ())? = nil
+    fileprivate weak var backgroundView: UIView? = nil
+
     /**< 网络 */
-    convenience init(playURL: String, stopBuffer: Bool = false) {
+    convenience init(playURL: String, stopBuffer: Bool = false, background: UIView? = nil) {
         self.init()
         self.stopBuffer = stopBuffer
-        self.playURL = playURL
-        self.replaceItem()
-        self.listenNotification()
+        self.backgroundView = background
+        self.replaceItem(playURL: playURL)
     }
 
     /**< 切换item 网络路径转化成本地路径 */
-    fileprivate func replaceItem() {
+    fileprivate func replaceItem(playURL: String) {
         destruction()
+        reachabilityState(playURL: playURL)
+        listenNotification()
         
-        if let playURL = playURL, let url = URL(string: playURL) {
+        self.playURL = playURL
+        if let url = URL(string: playURL) {
             if let proxyUrl = KTVHTTPCache.proxyURL(withOriginalURL: url) {
                 self.proxyUrl = proxyUrl
                 playerItem = AVPlayerItem(url: proxyUrl)
                 player = AVPlayer(playerItem: playerItem)
                 playerLayer = AVPlayerLayer(player: player)
-                playView = WDPlayerLayerView(player: player, delegate: self)
+                kLogPrint("视频准备播放...\(playURL)")
+                
+                /**< 视频界面大小和backgroundView一致 */
+                playView.delegate = self
+                playView.reset()
+                playView.setPlaybackLayer(player: player)
+                playView.frame = backgroundView?.bounds ?? .zero
+                backgroundView?.addSubview(playView)
+                backgroundView?.isUserInteractionEnabled = true
+                               
                 observerAny = player?.addPeriodicTimeObserver(forInterval: CMTime(value: 1, timescale: 1), queue: .global(), using: { [weak self] progressTime in
-                    guard self?.isTracking == false else { return }
+                    guard self?.isTracking == false, let self = self else { return }
                     let currentDuration = lroundf(Float(CMTimeGetSeconds(progressTime)))
-                    self?.currentDuration = currentDuration
+                    self.currentDuration = currentDuration
+                    
+                    /**< 设置封面 */
+                    if self.playView.isSetFirstImage == false, self.getFirstRate == true {
+                        self.setCover(image: WDPlayerAssistant.currentImage(currentItem: self.playerItem))
+                    }
+                    
+                    /**< 设置秒数 */
+                    self.delegate?.playProgress?(play: self, seconds: currentDuration)
                     DispatchQueue.main.async {
-                        self?.playView.setCurrentDuration(currentDuration)
+                        self.playView.setCurrentDuration(currentDuration)
                     }
                 })
-                                                                   
+                
+                duration = -1
                 status = .buffer
                 isToKeepUp = false
                 playerItem?.addObserver(self, forKeyPath: "status", options: .new, context: nil)
@@ -243,6 +301,15 @@ class WDPlayerSession: NSObject {
         }
     }
     
+    /**< 设置封面 */
+    func setCover(image: UIImage? = nil) {
+        if let image = image {
+            playView.setFirstImage(image, forkey: playURL)
+        } else  {
+            playView.setCoverUrl(coverUrl: playURL, local: true)
+        }
+    }
+    
     /**< 监听回调 */
     override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey: Any]?, context: UnsafeMutableRawPointer?) {
 
@@ -263,6 +330,7 @@ class WDPlayerSession: NSObject {
                 isCaton = true
             } else {
                 isCaton = false
+                delegate?.bufferEnough?(play: self)
             }
             playView.disPlayLoadingView(isCaton)
             isLoadTimeControlStatus = true
@@ -273,6 +341,7 @@ class WDPlayerSession: NSObject {
             if playerItem?.isPlaybackBufferEmpty == true {
                 isToKeepUp = false
                 isCaton = true
+                delegate?.bufferBufferEmpty?(play: self)
             }
         }
 
@@ -295,23 +364,29 @@ class WDPlayerSession: NSObject {
                 play()
                 getAssetDuration()
                 retryCount = false
+                delegate?.bufferSuccess?(play: self)
                 
             } else if playerItem?.status == .readyToPlay, status == .buffer || status == .wait {
                 stop()
                 getAssetDuration()
                 retryCount = false
-                
+                delegate?.bufferSuccess?(play: self)
+                               
             } else if playerItem?.status == .failed || playerItem?.status == .unknown {
                 
                 status = .fail
                 kLogPrint("视频缓冲失败 :\(playURL!)")
                 kLogPrint("视频缓冲失败 :\(playerItem!.error.debugDescription)")
                 if (playerItem?.error as NSError?)?.code == -11829, retryCount == false, let _ = playURL {
-                    kLogPrint("重试........")
+                    
                     retryCount = true
                     retryloade()
+                    
+                } else {
+                    
+                    /**< 缓存失败 */
+                    delegate?.bufferFail?(play: self)
                 }
-                
             }
         }
 
@@ -320,6 +395,30 @@ class WDPlayerSession: NSObject {
     deinit {
         status = .pause
         destruction()
+    }
+    
+    /**< 网络状态 */
+    func reachabilityState(playURL: String?) {
+        guard reachability == nil else {
+            reachabilityCallBacks[playURL] = getCallBack()
+            return
+        }
+
+        reachabilityCallBacks[playURL] = getCallBack()
+        reachability = try? WDPlayerReachability(hostname: "www.baidu.com")
+        reachability?.whenReachable = { _ in
+            for (_, reachabilityCallBack) in reachabilityCallBacks {
+                reachabilityCallBack()
+            }
+        }
+        try? reachability?.startNotifier()
+    }
+    
+    fileprivate func getCallBack() -> (() -> ()) {
+        reachabilityCallBack = { [weak self] in
+            if self?.status == .fail { self?.retryloade() }
+        }
+        return reachabilityCallBack!
     }
     
     /**< 通知 */
