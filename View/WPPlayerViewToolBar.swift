@@ -41,7 +41,7 @@ class WPPlayerViewToolBar: UIView {
     /**< 当前时间 */
     public var currentlTime: Int = 0 {
         didSet {
-            if isTouching == false {
+            if progressSlider.isTracking == false {
                 startLabel.text = WDPlayerAssistant.timeTranslate(currentlTime)
                 setProgress()
             }
@@ -75,9 +75,7 @@ class WPPlayerViewToolBar: UIView {
     public func fullConstraint(full: Bool = true) {
         clipsToBounds = !full
     }
-
-    /**< 是否正在触摸 */
-    fileprivate var isTouching: Bool = false
+     
     fileprivate weak var delegate: WPPlayerViewBarDelegate? = nil
     var suspendClosure: ((Bool) -> Void)? = nil
     var cancelClosure: (() -> Void)? = nil
@@ -134,6 +132,7 @@ class WPPlayerViewToolBar: UIView {
         }
 
         let endWidth = endLabel.frame.size.width
+        endLabel.text = "00:00"
         endLabel.snp.makeConstraints { (make) in
             make.right.equalTo(fullButton.snp.left).offset(-3)
             make.centerY.equalTo(suspendButton)
@@ -176,8 +175,6 @@ class WPPlayerViewToolBar: UIView {
     @objc func eventTouchUpInside() {
         if progressSlider.isTracking { return }
         touchButton.isUserInteractionEnabled = false
-
-        isTouching = true
         progressSlider.value = touchButton.clickProportions
         adjustProgressSlider()
         restoreUserInteractionEnabled()
@@ -185,14 +182,10 @@ class WPPlayerViewToolBar: UIView {
 
     /**< 滑动 */
     @objc func eventValueChanged() {
-        isTouching = true
-        NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(resetTouching), object: nil)
-
-        /**< 滑动结束 */
+        delegate?.cancelHideToolbar()
         if progressSlider.isTracking == false {
             adjustProgressSlider()
         }
-        delegate?.cancelHideToolbar()
     }
 
     func adjustProgressSlider() {
@@ -200,7 +193,7 @@ class WPPlayerViewToolBar: UIView {
         let currentlTime = ceil(value * Float(totalTime))
         let currentlTimeInt = Int(currentlTime)
         self.currentlTime = currentlTimeInt
-        self.startLabel.text = WDPlayerAssistant.timeTranslate(currentlTimeInt)
+       
         self.progressSlider.isUserInteractionEnabled = false
         delegate?.eventValueChanged(currentlTime: currentlTimeInt)
         delegate?.cancelHideToolbar()
@@ -208,16 +201,10 @@ class WPPlayerViewToolBar: UIView {
     }
 
     func restoreUserInteractionEnabled() {
-        NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(resetTouching), object: nil)
-        perform(#selector(resetTouching), with: nil, afterDelay: 0.75)
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
             self.progressSlider.isUserInteractionEnabled = true
             self.touchButton.isUserInteractionEnabled = true
         }
-    }
-
-    @objc func resetTouching() {
-        isTouching = false
     }
 
     @objc func full() {
@@ -277,9 +264,9 @@ class WPPlayerViewToolBar: UIView {
     fileprivate lazy var progressView: UIProgressView = {
         var progressView = UIProgressView(progressViewStyle: .default)
         progressView.progress = 0
-        progressView.progressTintColor = .white
+        progressView.progressTintColor = UIColor.white.withAlphaComponent(0.5)
+        progressView.trackTintColor = UIColor.white.withAlphaComponent(0.1)
         progressView.isUserInteractionEnabled = false
-        progressView.trackTintColor = UIColor.white.withAlphaComponent(0.5)
         return progressView
     }()
 

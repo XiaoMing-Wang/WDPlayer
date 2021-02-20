@@ -186,13 +186,15 @@ extension WDPlayerLayerView: WPPlayerViewBarDelegate, WDPlayerTouchViewDelegate 
         suspend()
     }
 
-    /**< 进度滑动 */
+    /**< 滑块滑动 */
     func eventValueChanged(currentlTime: Int) {
+        touchView.currentlTime = currentlTime
         delegate?.eventValueChanged(currentlTime: currentlTime)
     }
 
     /**< 屏幕滑动 */
     func eventValueChanged(touchView: WDPlayerTouchView, currentlTime: Int) {
+        toolbarView.currentlTime = currentlTime
         delegate?.eventValueChanged(currentlTime: currentlTime)
     }
     
@@ -205,16 +207,16 @@ extension WDPlayerLayerView: WPPlayerViewBarDelegate, WDPlayerTouchViewDelegate 
         }
     }
 
-    /**< 暂停播放 */
-    func suspended(isSuspended: Bool) {
-        self.isSuspended = isSuspended
-        self.suspend(transform: false)
-    }
-
     /**< 取消消失工具栏 */
     func cancelHideToolbar() {
         NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(hiddenToolBar), object: nil)
         perform(#selector(hiddenToolBar), with: nil, afterDelay: 3)
+    }
+
+    /**< 暂停播放 */
+    func suspended(isSuspended: Bool) {
+        self.isSuspended = isSuspended
+        self.suspend(transform: false)
     }
 
     /**< 返回按钮点击 */

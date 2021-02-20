@@ -79,11 +79,15 @@ extension WDPlayerSession {
     /// 设置秒数
     /// - Parameter seconds: seconds
     func seekSeconds(seconds: Int) {
+        isTracking = true
+        NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(resetTracking), object: nil)
+
         player?.pause()
         player?.seek(to: CMTimeMakeWithSeconds(Float64(seconds), preferredTimescale: 1), toleranceBefore: .zero, toleranceAfter: .zero)
         if status == .play {
             player?.play()
         }
+        perform(#selector(resetTracking), with: nil, afterDelay: 1.0)
     }
 
     /**< 释放 */
@@ -165,6 +169,7 @@ class WDPlayerSession: NSObject {
     
     /**< 是否处于卡顿状态 */
     fileprivate(set) var isCaton: Bool = false
+    fileprivate(set) var isTracking: Bool = false
 
     /**< 播放资源 */
     fileprivate(set) var playURL: String? = nil
@@ -197,11 +202,12 @@ class WDPlayerSession: NSObject {
                 player = AVPlayer(playerItem: playerItem)
                 playerLayer = AVPlayerLayer(player: player)
                 playView = WDPlayerLayerView(player: player, delegate: self)
-                observerAny = player?.addPeriodicTimeObserver(forInterval: CMTime(value: 1, timescale: 1), queue: .global(), using: { /* [weak self] */progressTime in
+                observerAny = player?.addPeriodicTimeObserver(forInterval: CMTime(value: 1, timescale: 1), queue: .global(), using: { [weak self] progressTime in
+                    guard self?.isTracking == false else { return }
                     let currentDuration = lroundf(Float(CMTimeGetSeconds(progressTime)))
-                    self.currentDuration = currentDuration
+                    self?.currentDuration = currentDuration
                     DispatchQueue.main.async {
-                        self.playView.setCurrentDuration(currentDuration)
+                        self?.playView.setCurrentDuration(currentDuration)
                     }
                 })
                                                                    
@@ -215,6 +221,11 @@ class WDPlayerSession: NSObject {
                 player?.addObserver(self, forKeyPath: "timeControlStatus", options: .new, context: nil)
                 if stopBuffer { stop() }
             }
+        }
+        
+        /**< 静音播放 */
+        if AVAudioSession.sharedInstance().category != .playback {
+            try? AVAudioSession.sharedInstance().setCategory(.playback)
         }
     }
     
@@ -342,6 +353,11 @@ class WDPlayerSession: NSObject {
         if status == .background {
             play()
         }
+    }
+
+    /**< 重置 */
+    @objc func resetTracking() {
+        isTracking = false
     }
 }
 

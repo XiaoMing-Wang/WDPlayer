@@ -6,6 +6,8 @@
 //
 
 import UIKit
+import MediaPlayer
+import AVFoundation
 
 protocol WDPlayerTouchViewDelegate: class {
 
@@ -55,60 +57,113 @@ extension WDPlayerTouchView {
         
         /**< 开始触摸判断方向 */
         if (pan.state == .began) {
+            hidenAllControl()
+            NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(hidenDelay), object: nil)
+            
             panDirection = .free
             horizontalX = location.x
             verticalY = location.y
-            slipInstantaneousTime = currentlTime
-
+            slipInstantaneousTime = 0
+            slipInstantaneousEndTime = 0
+            
             if abs(velocity.x) > abs(velocity.y) {
                 panDirection = .horizontal
-                actionProgress.currentlTime = slipInstantaneousTime
+                slipInstantaneousTime = currentlTime
+                actionProgress.currentlTime = currentlTime
                 actionProgress.backgroundAnimation()
                 actionProgress.isHidden = false
                 suspendButton.alpha = 0
                 delegate?.hiddenBar(touchView: self, hidden: false)
-                /**< kLogPrint("进度") */
-
+                
             } else if let view = pan.view, location.x <= view.frame.size.width / 2.0 {
                 panDirection = .verticalLeft
-                /**< kLogPrint("亮度") */
+                brightness.isHidden = false
+                slipInstantaneousTime = brightness.progress
 
             } else {
                 panDirection = .verticalRight
-                /**< kLogPrint("音量") */
+                volume.isHidden = false
+                slipInstantaneousTime = volume.progress
             }
         }
 
-        /**< 滑动中 */
         if (pan.state == .changed) {
-           
+                       
             /**< 进度 */
             if panDirection == .horizontal {
-                
-                /**< 位移 */
                 let displacement = location.x - horizontalX
                 let displacementABS = abs(displacement)
                 let width = pan.view?.frame.size.width ?? 0
                 let amplitude: Int = Int((displacementABS / width) * WDPlayConf.playerProgressAdjustment)
-                               
+                
                 /**< 快进 */
                 if displacement > 0 {
-                    
                     slipInstantaneousEndTime = min(slipInstantaneousTime + amplitude, totalTime)
                     actionProgress.currentlTime = slipInstantaneousEndTime
                     if slipInstantaneousEndTime >= totalTime {
                         slipInstantaneousTime = totalTime
                         horizontalX = location.x
                     }
-                                        
                 } else {
-
                     slipInstantaneousEndTime = max(slipInstantaneousTime - amplitude, 0)
                     actionProgress.currentlTime = slipInstantaneousEndTime
                     if slipInstantaneousEndTime <= 0 {
                         slipInstantaneousTime = 0
                         horizontalX = location.x
                     }
+                }
+            }
+            
+            func relocation(_ caps: Bool = true) {
+                if slipInstantaneousEndTime >= 100, caps == true {
+                    slipInstantaneousTime = 100
+                    verticalY = location.y
+                } else if slipInstantaneousEndTime <= 0, caps == false {
+                    slipInstantaneousTime = 0
+                    verticalY = location.y
+                }
+            }
+                        
+            /**< 亮度 */
+            if panDirection == .verticalLeft {
+                let displacement = location.y - verticalY
+                let displacementABS = abs(displacement)
+                let height = pan.view?.frame.size.height ?? 0
+                let amplitude: Int = Int((displacementABS / height) * 200)
+                if displacement < 0 {
+
+                    slipInstantaneousEndTime = min(slipInstantaneousTime + amplitude, 100)
+                    brightness.progress = slipInstantaneousEndTime
+                    UIScreen.main.brightness = brightness.progressFloat()
+                    relocation()
+                    
+                } else {
+                    
+                    slipInstantaneousEndTime = max(slipInstantaneousTime - amplitude, 0)
+                    brightness.progress = slipInstantaneousEndTime
+                    UIScreen.main.brightness = brightness.progressFloat()
+                    relocation(false)
+                }
+            }
+            
+            
+            /**< 音量 */
+            if panDirection == .verticalRight {
+                let displacement = location.y - verticalY
+                let displacementABS = abs(displacement)
+                let height = pan.view?.frame.size.height ?? 0
+                let amplitude: Int = Int((displacementABS / height) * 200)
+                if displacement < 0 {
+                    slipInstantaneousEndTime = min(slipInstantaneousTime + amplitude, 100)
+                    volume.progress = slipInstantaneousEndTime
+                    volumeSlider?.value = Float(volume.progressFloat())
+                    relocation()
+                    
+                } else {
+                    slipInstantaneousEndTime = max(slipInstantaneousTime - amplitude, 0)
+                    volume.progress = slipInstantaneousEndTime
+                    volumeSlider?.value = Float(volume.progressFloat())
+                    relocation(false)
                 }
             }
             
@@ -122,12 +177,26 @@ extension WDPlayerTouchView {
                 suspendButton.alpha = 1
                 actionProgress.backgroundAnimation(false)
                 delegate?.hiddenBar(touchView: self, hidden: true)
+                currentlTime = slipInstantaneousEndTime
+            }
+
+            if pan.state == .ended, panDirection == .verticalLeft || panDirection == .verticalRight {
+                perform(#selector(hidenDelay), with: nil, afterDelay: 2)
             }
 
             self.panDirection = .free
         }
+    }
+    
+    func hidenAllControl() {
+        actionProgress.isHidden = true
+        brightness.isHidden = true
+        volume.isHidden = true
+    }
 
-       
+    @objc func hidenDelay() {
+        brightness.isHidden = true
+        volume.isHidden = true
     }
 
 }
@@ -144,6 +213,7 @@ class WDPlayerTouchView: UIView {
     fileprivate weak var delegate: WDPlayerTouchViewDelegate? = nil
     fileprivate var panDirection: PanDirection = .free
     fileprivate var panGestureRecognizer: UIPanGestureRecognizer? = nil
+    fileprivate var volumeSlider: UISlider? = nil
 
     /**< 横纵向初始位置 */
     fileprivate var horizontalX: CGFloat = 0
@@ -180,6 +250,7 @@ class WDPlayerTouchView: UIView {
         self.addGestures()
         self.addLoadingView()
         self.hiddenLoadingView()
+        self.volumeControl()
     }
 
     @objc fileprivate func _showLoadingView() {
@@ -203,6 +274,8 @@ class WDPlayerTouchView: UIView {
         addSubview(actionProgress)
         addSubview(loadingView)
         addSubview(suspendButton)
+        addSubview(brightness)
+        addSubview(volume)
         automaticLayout()
     }
 
@@ -220,6 +293,17 @@ class WDPlayerTouchView: UIView {
 
         actionProgress.snp.makeConstraints { (make) in
             make.edges.equalTo(0)
+        }
+
+        brightness.snp.makeConstraints { (make) in
+            make.width.equalTo(180)
+            make.height.equalTo(30)
+            make.center.equalToSuperview()
+        }
+
+        volume.snp.makeConstraints { (make) in
+            make.width.height.equalTo(brightness)
+            make.center.equalToSuperview()
         }
     }
     
@@ -241,6 +325,39 @@ class WDPlayerTouchView: UIView {
             self.addGestureRecognizer(panGestureRecognizer)
             self.panGestureRecognizer = panGestureRecognizer
             self.panGestureRecognizer?.isEnabled = false
+        }
+    }
+    
+    /**< 音量 */
+    func volumeControl() {
+        let volumeView = MPVolumeView(frame: CGRect(x: -20, y: -20, width: 1, height: 1))
+        for view in volumeView.subviews {
+            if let volumeSlider = view as? UISlider {
+                self.volumeSlider = volumeSlider
+            }
+        }
+        insertSubview(volumeView, at: 0)
+        clipsToBounds = true
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(volumeChange(_:)),
+            name: Notification.Name(rawValue: "AVSystemController_SystemVolumeDidChangeNotification"),
+            object: nil
+        )
+    }
+    
+    @objc func volumeChange(_ notification: NSNotification) {
+        let userInfo = notification.userInfo!
+        if let volumeValue = userInfo["AVSystemController_AudioVolumeNotificationParameter"] as? Double {
+            hidenAllControl()
+            if let explicitVolumeChange = userInfo["AVSystemController_AudioVolumeChangeReasonNotificationParameter"] as? String {
+                if explicitVolumeChange == "ExplicitVolumeChange" || explicitVolumeChange != "RouteChange" {
+                    volume.isHidden = false
+                }
+            }
+            volume.progress = Int(volumeValue * 100)
+            NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(hidenDelay), object: nil)
+            perform(#selector(hidenDelay), with: nil, afterDelay: 2)
         }
     }
 
@@ -265,6 +382,19 @@ class WDPlayerTouchView: UIView {
         return actionProgress
     }()
 
+    fileprivate lazy var brightness: WDPlayVolumeBrightness = {
+        var brightness = WDPlayVolumeBrightness(type: .brightness)
+        brightness.progress = Int(UIScreen.main.brightness * 100)
+        brightness.isHidden = true
+        return brightness
+    }()
+
+    fileprivate lazy var volume: WDPlayVolumeBrightness = {
+        var volume = WDPlayVolumeBrightness(type: .volume)
+        volume.progress = Int(AVAudioSession.sharedInstance().outputVolume * 100)
+        volume.isHidden = true
+        return volume
+    }()
 }
 
 
