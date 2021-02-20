@@ -41,20 +41,20 @@ class WPPlayerViewTopBar: UIView {
 
     /**< 布局 */
     fileprivate func automaticLayout() {
-        
         topShadow.snp.makeConstraints { (make) in
             make.edges.equalTo(0)
         }
-
+        
         backButton.snp.makeConstraints { (make) in
             make.left.top.bottom.equalTo(0)
             make.width.equalTo(WDPlayConf.toolBarHeight)
         }
-
+        
         titleLabels.snp.makeConstraints { (make) in
+            make.top.equalTo(0)
             make.left.equalTo(backButton.snp.right).offset(0)
-            make.right.equalToSuperview()
-            make.top.bottom.equalTo(0)
+            make.height.equalToSuperview()
+            make.right.greaterThanOrEqualTo(-10)
         }
     }
 

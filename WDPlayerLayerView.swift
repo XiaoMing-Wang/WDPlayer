@@ -346,7 +346,6 @@ class WDPlayerLayerView: UIView {
         addSubview(touchView)
         WDPlayConf.showTopBar ? addSubview(topBar) : ()
         WDPlayConf.showToolBar ? addSubview(toolbarView) : ()
-
         automaticLayout()
         cancelHideToolbar()
         setContentMode(.blackBorder)
@@ -358,7 +357,7 @@ class WDPlayerLayerView: UIView {
         }
 
         touchView.snp.makeConstraints { (make) in
-            make.left.right.top.bottom.equalTo(0)
+            make.edges.equalTo(0)
         }
 
         if WDPlayConf.showTopBar == true {
@@ -376,7 +375,7 @@ class WDPlayerLayerView: UIView {
                 make.height.equalTo(WDPlayConf.toolBarHeight)
             }
         }
-        
+
         topBarDistance = WDPlayConf.toolBarHeight
         bottomBarDistance = WDPlayConf.toolBarHeight
     }

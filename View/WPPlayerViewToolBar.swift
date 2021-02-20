@@ -146,10 +146,11 @@ class WPPlayerViewToolBar: UIView {
             make.width.equalTo(endWidth)
         }
         
+        touchButton.backgroundColor = .red
         touchButton.snp.makeConstraints { (make) in
             make.top.bottom.equalTo(0)
             make.left.equalTo(startLabel.snp.right).offset(10)
-            make.right.equalTo(endLabel.snp.left).offset(-10)
+            make.right.greaterThanOrEqualTo(endLabel.snp.left).offset(-10)
         }
 
         progressView.snp.makeConstraints { (make) in
