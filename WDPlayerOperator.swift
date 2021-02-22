@@ -12,25 +12,25 @@ import KTVHTTPCache
 @objc protocol WDPlayerSessionDelegate {
 
     /**< 缓冲失败(链接失效) */
-    @objc optional func bufferFail(play: WDPlayerSession)
+    @objc optional func bufferFail(play: WDPlayerOperator)
 
     /**< 缓冲成功(表示这个视频可以播放) */
-    @objc optional func bufferSuccess(play: WDPlayerSession)
+    @objc optional func bufferSuccess(play: WDPlayerOperator)
 
     /**< 缓冲不足(显示菊花) */
-    @objc optional func bufferBufferEmpty(play: WDPlayerSession)
+    @objc optional func bufferBufferEmpty(play: WDPlayerOperator)
 
     /**< 缓冲足够当前视频播放  */
-    @objc optional func bufferEnough(play: WDPlayerSession)
+    @objc optional func bufferEnough(play: WDPlayerOperator)
 
     /// 进度回调
     /// - Parameters:
     ///   - play: 播放器
     ///   - seconds: 进度单位秒
-    @objc optional func playProgress(play: WDPlayerSession, seconds: Int)
+    @objc optional func playProgress(play: WDPlayerOperator, seconds: Int)
 }
 
-extension WDPlayerSession {
+extension WDPlayerOperator {
     
     /**< 播放 */
     func play() {
@@ -167,7 +167,7 @@ extension WDPlayerSession {
 fileprivate var reachabilityStatus: Bool = true
 fileprivate var reachability: WDPlayerReachability? = nil
 fileprivate var reachabilityCallBacks = [String?: () -> ()]()
-class WDPlayerSession: NSObject {
+class WDPlayerOperator: NSObject {
 
     enum Status {
         case unknow      /**< 未知 */
@@ -512,7 +512,7 @@ class WDPlayerSession: NSObject {
     }
 }
 
-extension WDPlayerSession: WDPlayerLayerViewDelegate {
+extension WDPlayerOperator: WDPlayerLayerViewDelegate {
 
     /// 暂停回调
     /// - Parameter layerView: layerView
