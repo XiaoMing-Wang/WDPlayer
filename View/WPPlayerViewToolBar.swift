@@ -63,6 +63,25 @@ class WPPlayerViewToolBar: UIView {
             suspendButton.isSelected = isSuspended
         }
     }
+    
+    /**< 支持横屏 */
+    var isSupportFullScreen: Bool = true {
+        didSet {
+            if isSupportFullScreen == false {
+                fullButton.snp.removeConstraints()
+                fullButton.removeFromSuperview()
+                endLabel.snp.removeConstraints()
+                endLabel.text = "44:44"
+                endLabel.sizeToFit()
+                endLabel.text = "00:00"
+                endLabel.snp.remakeConstraints { (make) in
+                    make.right.equalToSuperview().offset(-15)
+                    make.centerY.equalTo(suspendButton)
+                    make.width.equalTo(endLabel.frame.size.width)
+                }
+            }
+        }
+    }
 
     /**< 全屏 */
     public var isFullScreen: Bool = false {
@@ -113,15 +132,14 @@ class WPPlayerViewToolBar: UIView {
     /**< 布局 */
     fileprivate func automaticLayout() {
         bottomShadow.snp.makeConstraints { (make) in
-            make.left.right.equalTo(0)
-            make.width.equalToSuperview()
-            make.height.equalToSuperview().offset(40)
-        }
-
-        suspendButton.snp.makeConstraints { (make) in
-            make.left.equalTo(0)
             make.top.bottom.equalTo(0)
-            make.width.equalTo(WDPlayConf.toolBarHeight)
+            make.left.equalTo(-60)
+            make.right.equalTo(60)
+        }
+        
+        suspendButton.snp.makeConstraints { (make) in
+            make.left.top.equalTo(0)
+            make.width.height.equalTo(WDPlayConf.toolBarHeight)
         }
 
         let width = startLabel.frame.size.width
@@ -134,8 +152,8 @@ class WPPlayerViewToolBar: UIView {
 
         fullButton.snp.makeConstraints { (make) in
             make.right.equalTo(0)
-            make.top.bottom.equalTo(0)
-            make.width.equalTo(WDPlayConf.toolBarHeight)
+            make.top.equalTo(0)
+            make.width.height.equalTo(suspendButton)
         }
 
         let endWidth = endLabel.frame.size.width
@@ -145,9 +163,10 @@ class WPPlayerViewToolBar: UIView {
             make.centerY.equalTo(suspendButton)
             make.width.equalTo(endWidth)
         }
-        
+
         touchButton.snp.makeConstraints { (make) in
-            make.top.bottom.equalTo(0)
+            make.top.equalTo(0)
+            make.height.equalTo(suspendButton)
             make.left.equalTo(startLabel.snp.right).offset(10)
             make.right.greaterThanOrEqualTo(endLabel.snp.left).offset(-10)
         }

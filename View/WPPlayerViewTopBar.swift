@@ -27,8 +27,7 @@ class WPPlayerViewTopBar: UIView {
 
     /**< 全屏布局 */
     public func fullConstraint(full: Bool = true) {
-        
-        
+        clipsToBounds = !full
     }
         
     /**< 初始化 */
@@ -42,7 +41,9 @@ class WPPlayerViewTopBar: UIView {
     /**< 布局 */
     fileprivate func automaticLayout() {
         topShadow.snp.makeConstraints { (make) in
-            make.edges.equalTo(0)
+            make.top.bottom.equalTo(0)
+            make.left.equalTo(-60)
+            make.right.equalTo(60)
         }
         
         backButton.snp.makeConstraints { (make) in

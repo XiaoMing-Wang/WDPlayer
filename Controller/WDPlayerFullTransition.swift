@@ -64,8 +64,8 @@ class WDPlayerFullTransition: NSObject, UIViewControllerAnimatedTransitioning {
         
         /**< 还原播放界面 */
         UIView.animate(withDuration: transitionDuration(using: transitionContext), delay: 0, options: .curveEaseOut) {
-            toView.backgroundColor = UIColor.black.withAlphaComponent(1)
-            playerView.frame = CGRect(x: 0, y: 0, width: height, height: width - WDPlayConf.barHeight() - WDPlayConf.safeBottom())
+            /**< toView.backgroundColor = UIColor.black.withAlphaComponent(1) */
+            playerView.frame = CGRect(x: 0, y: 0, width: height, height: width)
             playerView.center = CGPoint(x: width / 2, y: height / 2)
             playerView.transform = .identity
             playerView.layoutIfNeeded()
@@ -97,7 +97,7 @@ class WDPlayerFullTransition: NSObject, UIViewControllerAnimatedTransitioning {
         containerView.addSubview(playerView)
         
         UIView.animate(withDuration: transitionDuration(using: transitionContext), delay: 0, options: .curveEaseOut) {
-            fromView.backgroundColor = UIColor.black.withAlphaComponent(0)
+            /**< fromView.backgroundColor = UIColor.black.withAlphaComponent(0) */
             playerView.frame = CGRect(x: 0, y: 0, width: originalWidth, height: originalHeight)
             playerView.transform = CGAffineTransform.identity
             playerView.center = CGPoint(x: width / 2, y: originalCenterY)

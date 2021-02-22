@@ -91,7 +91,6 @@ extension WDPlayerSession {
             return
         }
 
-        kLogPrint(3333333)
         replaceItem(playURL: nextURL)
     }
     
@@ -121,6 +120,9 @@ extension WDPlayerSession {
             return
         }
         
+        playerItem?.cancelPendingSeeks()
+        playerItem?.asset.cancelLoading()
+        
         player?.pause()
         do {
             playerItem?.removeObserver(self, forKeyPath: "status")
@@ -136,6 +138,14 @@ extension WDPlayerSession {
             self.observerAny = nil
         }
 
+        bufferDuration = 0
+        currentDuration = 0
+        duration = -1
+        retryCount = false
+        isToKeepUp = false
+        isFluentPlaying = false
+        isLoadTimeControlStatus = false
+                
         status = .destruction
         playerLayer?.removeFromSuperlayer()
         playURL = nil
@@ -154,6 +164,7 @@ extension WDPlayerSession {
     }
 }
 
+fileprivate var reachabilityStatus: Bool = true
 fileprivate var reachability: WDPlayerReachability? = nil
 fileprivate var reachabilityCallBacks = [String?: () -> ()]()
 class WDPlayerSession: NSObject {
@@ -192,6 +203,7 @@ class WDPlayerSession: NSObject {
     /**< 总时长 */
     fileprivate(set) var duration: Int = -1
     fileprivate(set) var currentDuration: Int = 0
+    fileprivate(set) var bufferDuration: Int = 0
     
     /**< 播放状态 */
     fileprivate(set) var status: Status = .unknow
@@ -203,8 +215,8 @@ class WDPlayerSession: NSObject {
     fileprivate(set) var isToKeepUp: Bool = false
     fileprivate(set) var isLoadTimeControlStatus: Bool = false
     
-    /**< 是否处于卡顿状态 */
-    fileprivate(set) var isCaton: Bool = false
+    /**< 是否流畅播放 */
+    fileprivate(set) var isFluentPlaying: Bool = false
     fileprivate(set) var isTracking: Bool = false
 
     /**< 播放资源 */
@@ -268,9 +280,11 @@ class WDPlayerSession: NSObject {
                     }
                 })
                 
-                duration = -1
                 status = .buffer
                 isToKeepUp = false
+                player?.automaticallyWaitsToMinimizeStalling = false
+                playerItem?.canUseNetworkResourcesForLiveStreamingWhilePaused = false
+                playerItem?.preferredForwardBufferDuration = 5
                 playerItem?.addObserver(self, forKeyPath: "status", options: .new, context: nil)
                 playerItem?.addObserver(self, forKeyPath: "playbackBufferEmpty", options: .new, context: nil)
                 playerItem?.addObserver(self, forKeyPath: "playbackLikelyToKeepUp", options: .new, context: nil)
@@ -288,7 +302,7 @@ class WDPlayerSession: NSObject {
     }
     
     /**< 获取时长 */
-    func getAssetDuration() {
+    fileprivate func getAssetDuration() {
         guard duration == -1 else { return }
         DispatchQueue.global().async {
             if let assetDuration = self.playerItem?.asset.duration {
@@ -302,7 +316,7 @@ class WDPlayerSession: NSObject {
     }
     
     /**< 设置封面 */
-    func setCover(image: UIImage? = nil) {
+    fileprivate func setCover(image: UIImage? = nil) {
         if let image = image {
             playView.setFirstImage(image, forkey: playURL)
         } else  {
@@ -320,19 +334,21 @@ class WDPlayerSession: NSObject {
                 let startSeconds = CMTimeGetSeconds(timeRange.start)
                 let durationSeconds = CMTimeGetSeconds(timeRange.duration)
                 let result = Int(startSeconds + durationSeconds)
-                playView.setBufferDuration(result)
+                bufferDuration = max(bufferDuration, result)
+                playView.setBufferDuration(bufferDuration)
             }
         }
 
         /**< 播放状态 ios10+ */
         if (keyPath == "timeControlStatus") {
-            if player?.timeControlStatus == .waitingToPlayAtSpecifiedRate {
-                isCaton = true
-            } else {
-                isCaton = false
-                delegate?.bufferEnough?(play: self)
+            isFluentPlaying = (player?.timeControlStatus == .playing)
+            if player?.timeControlStatus == .playing {
+                playView.disPlayLoadingView(false)
+            } else if player?.timeControlStatus == .waitingToPlayAtSpecifiedRate {
+                playView.disPlayLoadingView(true)
+                delegate?.bufferBufferEmpty?(play: self)
             }
-            playView.disPlayLoadingView(isCaton)
+
             isLoadTimeControlStatus = true
         }
 
@@ -340,8 +356,11 @@ class WDPlayerSession: NSObject {
         if (keyPath == "playbackBufferEmpty") {
             if playerItem?.isPlaybackBufferEmpty == true {
                 isToKeepUp = false
-                isCaton = true
+                isFluentPlaying = false
+                playView.disPlayLoadingView(true)
                 delegate?.bufferBufferEmpty?(play: self)
+                playbackBufferEmpty()
+                kLogPrint("playbackBufferEmpty")
             }
         }
 
@@ -349,11 +368,10 @@ class WDPlayerSession: NSObject {
         if (keyPath == "playbackLikelyToKeepUp") {
             if playerItem?.isPlaybackLikelyToKeepUp == true {
                 isToKeepUp = true
-                isCaton = false
-
-                /**< 缓冲足够假如处于暂停 需要播放的播放视频 */
-                if status == .play, player?.timeControlStatus == .paused {
+                if status == .play {
+                    player?.pause()
                     play()
+                    kLogPrint("playbackLikelyToKeepUp")
                 }
             }
         }
@@ -389,7 +407,27 @@ class WDPlayerSession: NSObject {
                 }
             }
         }
+    }
+    
+    /**< 缓冲不足处理 */
+    fileprivate func playbackBufferEmpty() {
+        guard status == .play else { return }
+        player?.pause()
+        NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(againPlay), object: nil)
+        perform(#selector(againPlay), with: nil, afterDelay: 2.5)
+    }
 
+    /**< 重新播放 */
+    @objc fileprivate func againPlay() {
+        guard reachabilityStatus else { return }
+        guard status == .play else { return }
+        guard isFluentPlaying == false else { return }
+        if playerItem?.isPlaybackLikelyToKeepUp == true {
+            player?.play()
+        } else {
+            NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(againPlay), object: nil)
+            perform(#selector(againPlay), with: nil, afterDelay: 3)
+        }
     }
 
     deinit {
@@ -398,7 +436,7 @@ class WDPlayerSession: NSObject {
     }
     
     /**< 网络状态 */
-    func reachabilityState(playURL: String?) {
+    fileprivate func reachabilityState(playURL: String?) {
         guard reachability == nil else {
             reachabilityCallBacks[playURL] = getCallBack()
             return
@@ -407,16 +445,29 @@ class WDPlayerSession: NSObject {
         reachabilityCallBacks[playURL] = getCallBack()
         reachability = try? WDPlayerReachability(hostname: "www.baidu.com")
         reachability?.whenReachable = { _ in
+            reachabilityStatus = true
             for (_, reachabilityCallBack) in reachabilityCallBacks {
                 reachabilityCallBack()
             }
+        }
+        
+        reachability?.whenUnreachable = { _ in
+            reachabilityStatus = false
         }
         try? reachability?.startNotifier()
     }
     
     fileprivate func getCallBack() -> (() -> ()) {
         reachabilityCallBack = { [weak self] in
-            if self?.status == .fail { self?.retryloade() }
+            if self?.status == .fail {
+                self?.playView.disPlayLoadingView(true)
+                self?.retryloade()
+            }
+
+            if self?.status == .play, self?.isFluentPlaying == false {
+                self?.player?.pause()
+                self?.player?.play()
+            }
         }
         return reachabilityCallBack!
     }
@@ -430,12 +481,13 @@ class WDPlayerSession: NSObject {
 
     /**< 播放结束 */
     @objc fileprivate func playerItemDidReachEnd(notification: Notification) {
-        backBagin(mandatory: true)
-        if isReplay, status == .play {
-            play()
-
-        } else if isReplay == false {
-            stop()
+        if let item = notification.object as? AVPlayerItem, item == playerItem {
+            backBagin(mandatory: true)
+            if isReplay, status == .play {
+                play()
+            } else if isReplay == false {
+                stop()
+            }
         }
     }
 

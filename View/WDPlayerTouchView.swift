@@ -84,11 +84,13 @@ extension WDPlayerTouchView {
                 delegate?.hiddenBar(touchView: self, hidden: false)
                 
             } else if let view = pan.view, location.x <= view.frame.size.width / 2.0 {
+                if isSupportVolumeBrightness == false, isFullScreen == false { return }
                 panDirection = .verticalLeft
                 brightness.isHidden = false
                 slipInstantaneousTime = brightness.progress
 
             } else {
+                if isSupportVolumeBrightness == false, isFullScreen == false { return }
                 panDirection = .verticalRight
                 volume.isHidden = false
                 slipInstantaneousTime = volume.progress
@@ -99,6 +101,7 @@ extension WDPlayerTouchView {
                        
             /**< 进度 */
             if panDirection == .horizontal {
+                actionProgress.isHidden = false
                 let displacement = location.x - horizontalX
                 let displacementABS = abs(displacement)
                 let width = pan.view?.frame.size.width ?? 0
@@ -134,6 +137,7 @@ extension WDPlayerTouchView {
                         
             /**< 亮度 */
             if panDirection == .verticalLeft {
+                brightness.isHidden = false
                 let displacement = location.y - verticalY
                 let displacementABS = abs(displacement)
                 let height = pan.view?.frame.size.height ?? 0
@@ -157,6 +161,7 @@ extension WDPlayerTouchView {
             
             /**< 音量 */
             if panDirection == .verticalRight {
+                volume.isHidden = false
                 let displacement = location.y - verticalY
                 let displacementABS = abs(displacement)
                 let height = pan.view?.frame.size.height ?? 0
@@ -254,6 +259,10 @@ class WDPlayerTouchView: UIView {
         didSet { }
     }
 
+    /**< 是否支持亮度音量调节 */
+    var isSupportVolumeBrightness: Bool = true
+    var isFullScreen: Bool = false
+    
     convenience init(delegate: WDPlayerTouchViewDelegate?) {
         self.init()
         self.delegate = delegate
@@ -273,6 +282,7 @@ class WDPlayerTouchView: UIView {
     }
 
     @objc func doubleTap() {
+        suspendButton.alpha = 1
         delegate?.doubleTap(touchView: self)
     }
 
@@ -356,8 +366,11 @@ class WDPlayerTouchView: UIView {
             name: Notification.Name(rawValue: "AVSystemController_SystemVolumeDidChangeNotification"),
             object: nil
         )
+        
+        /**< 通知 */
+        NotificationCenter.default.addObserver(self, selector: #selector(resignActive), name: UIApplication.didBecomeActiveNotification, object: nil)
     }
-    
+        
     @objc func volumeChange(_ notification: NSNotification) {
         let userInfo = notification.userInfo!
         if let volumeValue = userInfo["AVSystemController_AudioVolumeNotificationParameter"] as? Double {
@@ -371,6 +384,10 @@ class WDPlayerTouchView: UIView {
             NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(hidenDelay), object: nil)
             perform(#selector(hidenDelay), with: nil, afterDelay: 2)
         }
+    }
+
+    @objc func resignActive() {
+        brightness.progress = Int(UIScreen.main.brightness * 100)
     }
 
     func remoGestureRecognizer(_ tap: UIGestureRecognizer?) {

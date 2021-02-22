@@ -68,7 +68,7 @@ extension WDPlayerLayerView {
 
     /// 显示隐藏菊花
     /// - Parameter display: display
-    func disPlayLoadingView(_ display: Bool = true, afterDelay: TimeInterval = 0.65) {
+    func disPlayLoadingView(_ display: Bool = true, afterDelay: TimeInterval = 0.30) {
         guard WDPlayConf.supportLodaing else { return }
         display ? touchView.showLoadingView(afterDelay: afterDelay) : touchView.hiddenLoadingView()
     }
@@ -150,9 +150,8 @@ fileprivate extension WDPlayerLayerView {
         }
 
         if WDPlayConf.showToolBar == true, topBar.superview != nil {
-            let bottom = isFullScreen ? -WDPlayConf.safeBottom() : 0
             toolbarView.snp.updateConstraints { (make) in
-                make.bottom.equalTo(bottom)
+                make.bottom.equalTo(0)
             }
         }
 
@@ -264,6 +263,7 @@ extension WDPlayerLayerView: WPPlayerViewBarDelegate, WDPlayerTouchViewDelegate 
         cancelHideToolbar()
         isFullScreen = true
         topBar.isFullScreen = true
+        touchView.isFullScreen = true
         toolbarView.isFullScreen = true
         originalSizePlay = frame.size
         originalCenterYPlay = WDPlayerAssistant.locationWindow_play(self).origin.y + (originalSizePlay.height / 2)
@@ -292,6 +292,7 @@ extension WDPlayerLayerView: WPPlayerViewBarDelegate, WDPlayerTouchViewDelegate 
             self.originalCenterYPlay = 0
             self.isFullScreen = false
             self.topBar.isFullScreen = false
+            self.touchView.isFullScreen = false
             self.toolbarView.isFullScreen = false
             self.tag = 0
         })
@@ -313,20 +314,36 @@ class WDPlayerLayerView: UIView {
         }
     }
     
+    /**< 是否支持亮度音量调节 (只能关闭竖屏) */
+    var isSupportVolumeBrightness: Bool = true {
+        didSet {
+            touchView.isSupportVolumeBrightness = isSupportVolumeBrightness
+        }
+    }
+    
+    /**< 是否支持横屏 */
+    var isSupportFullScreen: Bool = true {
+        didSet {
+            toolbarView.isSupportFullScreen = isSupportFullScreen
+        }
+    }
+    
+    /**< 直接显示菊花 加载前就显示出来 */
+    var isDirectDisplayLoading: Bool = false {
+        didSet {
+            disPlayLoadingView(true)
+        }
+    }
+    
     /**< 第一帧图片 */
     fileprivate(set) var isSetFirstImage: Bool = false
 
     /**< 是否处于暂停 */
     fileprivate var isSuspended: Bool = false
     fileprivate var isAnimation: Bool = false
-
-    /**< 是否显示状态栏 */
     fileprivate var isShowToolBar: Bool = true
-    
     fileprivate var topBarDistance: CGFloat = 0
     fileprivate var bottomBarDistance: CGFloat = 0
-
-    /**< 手是否处于横屏 */
     fileprivate var isFullScreen: Bool = false
     fileprivate var isLayoutSubviews: Bool = false
     fileprivate var contentModeType: WDPlayConf.ContentMode? = nil
@@ -340,12 +357,13 @@ class WDPlayerLayerView: UIView {
     fileprivate func initializationInterface() {
         backgroundColor = .black
         clipsToBounds = true
+        isDirectDisplayLoading = true
         tag = 0
-        
+
         addSubview(contentsView)
         addSubview(touchView)
-        WDPlayConf.showTopBar ? addSubview(topBar) : ()
-        WDPlayConf.showToolBar ? addSubview(toolbarView) : ()
+        if WDPlayConf.showTopBar { addSubview(topBar) }
+        if WDPlayConf.showToolBar { addSubview(toolbarView) }
         automaticLayout()
         cancelHideToolbar()
         setContentMode(.blackBorder)
@@ -384,26 +402,25 @@ class WDPlayerLayerView: UIView {
     fileprivate func fullConstraint(full: Bool = true) {
         
         /**< 顶部导航栏 */
+        let margin = (full ? 55 : 0)
         if WDPlayConf.showTopBar == true, topBar.superview != nil {
-            topBarDistance = WDPlayConf.toolBarHeight + (full ? 20 : 0)
-            
+            topBarDistance = WDPlayConf.toolBarHeight + (full ? 25 : 0)
             topBar.fullConstraint(full: full)
             topBar.snp.updateConstraints { (make) in
+                make.left.equalTo(margin)
+                make.right.equalTo(-margin)
                 make.height.equalTo(topBarDistance)
             }
         }
         
         /**< 底部导航栏 */
         if WDPlayConf.showToolBar == true, toolbarView.superview != nil {
-            let height: CGFloat = WDPlayConf.toolBarHeight + (full ? 20 : 0)
-            let safeBottom: CGFloat = WDPlayConf.safeBottom()
-            bottomBarDistance = height + (full ? safeBottom : 0)
-            
-            if toolbarView.superview == nil { return }
+            bottomBarDistance = WDPlayConf.toolBarHeight + (full ? (27) : 0)
             toolbarView.fullConstraint(full: full)
             toolbarView.snp.updateConstraints { (make) in
-                make.height.equalTo(height)
-                make.bottom.equalTo((full ? -safeBottom : 0))
+                make.left.equalTo(margin)
+                make.right.equalTo(-margin)
+                make.height.equalTo(bottomBarDistance)
             }
         }
 
