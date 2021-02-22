@@ -17,19 +17,15 @@ class WPPlayerViewTopBar: UIView {
         self.delegate = delegate
         self.initializationInterface()
     }
-    
+
     /**< 全屏 */
-    public var isFullScreen: Bool = false {
-        didSet {
-           
-        }
-    }
+    public var isFullScreen: Bool = false
 
     /**< 全屏布局 */
     public func fullConstraint(full: Bool = true) {
         clipsToBounds = !full
     }
-        
+
     /**< 初始化 */
     fileprivate func initializationInterface() {
         addSubview(topShadow)
@@ -76,7 +72,7 @@ class WPPlayerViewTopBar: UIView {
         titleLabels.font = .systemFont(ofSize: 15)
         titleLabels.textColor = .white
         titleLabels.numberOfLines = 1
-        titleLabels.text = "电影名字阿啊啊啊啊啊啊啊啊啊~"
+        titleLabels.text = "电影名字阿阿阿阿阿阿阿阿阿阿阿阿阿阿阿阿~"
         return titleLabels
     }()
 

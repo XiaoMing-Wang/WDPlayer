@@ -106,10 +106,12 @@ extension WDPlayerOperator {
         NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(resetTracking), object: nil)
 
         player?.pause()
-        player?.seek(to: CMTimeMakeWithSeconds(Float64(seconds), preferredTimescale: 1), toleranceBefore: .zero, toleranceAfter: .zero)
-        if status == .play {
-            player?.play()
-        }
+        playerItem?.cancelPendingSeeks()
+        player?.seek(to: CMTimeMakeWithSeconds(Float64(seconds), preferredTimescale: 1), toleranceBefore: .zero, toleranceAfter: .zero, completionHandler: { [weak self] in
+            if self?.status == .play, $0 == true {
+                self?.player?.play()
+            }
+        })
         perform(#selector(resetTracking), with: nil, afterDelay: 1.0)
     }
 
@@ -122,6 +124,7 @@ extension WDPlayerOperator {
         
         playerItem?.cancelPendingSeeks()
         playerItem?.asset.cancelLoading()
+        showPlayLoading(false)
         
         player?.pause()
         do {
@@ -131,6 +134,8 @@ extension WDPlayerOperator {
             playerItem?.removeObserver(self, forKeyPath: "playbackBufferFull")
             playerItem?.removeObserver(self, forKeyPath: "loadedTimeRanges")
             player?.removeObserver(self, forKeyPath: "timeControlStatus")
+            player?.removeObserver(self, forKeyPath: "rate")
+            
         } catch {}
 
         if let observerAny = self.observerAny {
@@ -264,6 +269,7 @@ class WDPlayerOperator: NSObject {
                 backgroundView?.isUserInteractionEnabled = true
                                
                 observerAny = player?.addPeriodicTimeObserver(forInterval: CMTime(value: 1, timescale: 1), queue: .global(), using: { [weak self] progressTime in
+                    self?.showPlayLoading(false)
                     guard self?.isTracking == false, let self = self else { return }
                     let currentDuration = lroundf(Float(CMTimeGetSeconds(progressTime)))
                     self.currentDuration = currentDuration
@@ -290,6 +296,7 @@ class WDPlayerOperator: NSObject {
                 playerItem?.addObserver(self, forKeyPath: "playbackLikelyToKeepUp", options: .new, context: nil)
                 playerItem?.addObserver(self, forKeyPath: "playbackBufferFull", options: .new, context: nil)
                 playerItem?.addObserver(self, forKeyPath: "loadedTimeRanges", options: .new, context: nil)
+                player?.addObserver(self, forKeyPath: "rate", options: .new, context: nil)
                 player?.addObserver(self, forKeyPath: "timeControlStatus", options: .new, context: nil)
                 if stopBuffer { stop() }
             }
@@ -338,15 +345,17 @@ class WDPlayerOperator: NSObject {
                 playView.setBufferDuration(bufferDuration)
             }
         }
-
+    
+        if (keyPath == "rate") { }
+        
         /**< 播放状态 ios10+ */
         if (keyPath == "timeControlStatus") {
-            isFluentPlaying = (player?.timeControlStatus == .playing)
-            if player?.timeControlStatus == .playing {
-                playView.disPlayLoadingView(false)
-            } else if player?.timeControlStatus == .waitingToPlayAtSpecifiedRate {
-                playView.disPlayLoadingView(true)
-                delegate?.bufferBufferEmpty?(play: self)
+            if player?.timeControlStatus != .playing {
+                isFluentPlaying = false
+            }
+
+            if player?.timeControlStatus == .waitingToPlayAtSpecifiedRate {
+                showPlayLoading()
             }
 
             isLoadTimeControlStatus = true
@@ -357,7 +366,8 @@ class WDPlayerOperator: NSObject {
             if playerItem?.isPlaybackBufferEmpty == true {
                 isToKeepUp = false
                 isFluentPlaying = false
-                playView.disPlayLoadingView(true)
+                
+                showPlayLoading()
                 delegate?.bufferBufferEmpty?(play: self)
                 playbackBufferEmpty()
                 kLogPrint("playbackBufferEmpty")
@@ -369,10 +379,12 @@ class WDPlayerOperator: NSObject {
             if playerItem?.isPlaybackLikelyToKeepUp == true {
                 isToKeepUp = true
                 if status == .play {
-                    player?.pause()
                     play()
-                    kLogPrint("playbackLikelyToKeepUp")
                 }
+            } else {
+                isToKeepUp = false
+                isFluentPlaying = false
+                showPlayLoading()
             }
         }
         
@@ -428,6 +440,25 @@ class WDPlayerOperator: NSObject {
             NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(againPlay), object: nil)
             perform(#selector(againPlay), with: nil, afterDelay: 3)
         }
+    }
+
+    fileprivate func showPlayLoading(_ disPlay: Bool = true) {
+        DispatchQueue.main.async {
+            NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(self.showLoading), object: nil)
+            if disPlay {
+                self.perform(#selector(self.showLoading), with: nil, afterDelay: 0.3)
+            } else {
+                self.isFluentPlaying = true
+                self.playView.disPlayLoadingView(false)
+            }
+            
+            /**< player?.readyToPlay() */
+        }
+    }
+    
+    @objc fileprivate func showLoading() {
+        isFluentPlaying = false
+        playView.disPlayLoadingView(true)
     }
 
     deinit {

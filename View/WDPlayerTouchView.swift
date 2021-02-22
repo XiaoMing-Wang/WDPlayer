@@ -38,8 +38,10 @@ extension WDPlayerTouchView {
     /// 隐藏菊花
     func hiddenLoadingView() {
         NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(_showLoadingView), object: nil)
-        loadingView.hide()
-        loadingView.isHidden = true
+        if loadingView.isHidden == false {
+            loadingView.hide()
+            loadingView.isHidden = true
+        }
     }
     
     /// 删除双击
@@ -273,8 +275,10 @@ class WDPlayerTouchView: UIView {
     }
 
     @objc fileprivate func _showLoadingView() {
-        loadingView.start()
-        loadingView.isHidden = false
+        if loadingView.isHidden {
+            loadingView.start()
+            loadingView.isHidden = false
+        }
     }
 
     @objc func singleTap() {
