@@ -107,7 +107,7 @@ extension WDPlayerTouchView {
                 let displacement = location.x - horizontalX
                 let displacementABS = abs(displacement)
                 let width = pan.view?.frame.size.width ?? 0
-                let amplitude: Int = Int((displacementABS / width) * WDPlayConf.playerProgressAdjustment)
+                let amplitude: Int = Int((displacementABS / width) * WDPlayerConf.playerProgressAdjustment)
                 
                 /**< 快进 */
                 if displacement > 0 {
@@ -335,7 +335,7 @@ class WDPlayerTouchView: UIView {
     fileprivate func addGestures() {
         
         /**< 单击双击 */
-        if WDPlayConf.supportDoubleClick {
+        if WDPlayerConf.supportDoubleClick {
             let singleGesture = WDPlayerAssistant.addTapGesture(self, taps: 1, touches: 1, selector: #selector(singleTap))
             let doubleGesture = WDPlayerAssistant.addTapGesture(self, taps: 2, touches: 1, selector: #selector(doubleTap))
             singleGesture.require(toFail: doubleGesture)
@@ -346,7 +346,7 @@ class WDPlayerTouchView: UIView {
         }
 
         /**< 滑动手势 */
-        if WDPlayConf.supportPanGestureRecognizer {
+        if WDPlayerConf.supportPanGestureRecognizer {
             let panGestureRecognizer = UIPanGestureRecognizer(target: self, action: #selector(handleSwipe(pan:)))
             self.addGestureRecognizer(panGestureRecognizer)
             self.panGestureRecognizer = panGestureRecognizer

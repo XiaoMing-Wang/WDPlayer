@@ -44,7 +44,7 @@ class WPPlayerViewTopBar: UIView {
         
         backButton.snp.makeConstraints { (make) in
             make.left.top.bottom.equalTo(0)
-            make.width.equalTo(WDPlayConf.toolBarHeight)
+            make.width.equalTo(WDPlayerConf.toolBarHeight)
         }
         
         titleLabels.snp.makeConstraints { (make) in

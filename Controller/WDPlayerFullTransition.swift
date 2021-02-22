@@ -21,7 +21,7 @@ class WDPlayerFullTransition: NSObject, UIViewControllerAnimatedTransitioning {
     }
 
     func transitionDuration(using transitionContext: UIViewControllerContextTransitioning?) -> TimeInterval {
-        return WDPlayConf.playerAnimationDuration
+        return WDPlayerConf.playerAnimationDuration
     }
 
     func animateTransition(using transitionContext: UIViewControllerContextTransitioning) {
@@ -37,7 +37,7 @@ class WDPlayerFullTransition: NSObject, UIViewControllerAnimatedTransitioning {
             let fromView = fromVC.view,
             let toVC = transitionContext.viewController(forKey: UITransitionContextViewControllerKey.to),
             let toView = toVC.view,
-            let playerView = fromView.viewWithTag(WDPlayConf.playerLayerTag) else {
+            let playerView = fromView.viewWithTag(WDPlayerConf.playerLayerTag) else {
             return
         }
 
@@ -57,14 +57,13 @@ class WDPlayerFullTransition: NSObject, UIViewControllerAnimatedTransitioning {
         containerView.addSubview(toView)
         
         /**< 旋转缩小播放界面 让他和竖屏位置大小一致 */
-        playerView.tag = WDPlayConf.playerLayerTag
+        playerView.tag = WDPlayerConf.playerLayerTag
         playerView.transform = CGAffineTransform.identity.rotated(by: -(CGFloat.pi / 2))
         playerView.frame = CGRect(x: 0, y: 0, width: playerWidth, height: playerHeight)
         playerView.center = CGPoint(x: originalCenterXPlay, y: playerHeight / 2)
         
         /**< 还原播放界面 */
         UIView.animate(withDuration: transitionDuration(using: transitionContext), delay: 0, options: .curveEaseOut) {
-            /**< toView.backgroundColor = UIColor.black.withAlphaComponent(1) */
             playerView.frame = CGRect(x: 0, y: 0, width: height, height: width)
             playerView.center = CGPoint(x: width / 2, y: height / 2)
             playerView.transform = .identity
@@ -79,7 +78,7 @@ class WDPlayerFullTransition: NSObject, UIViewControllerAnimatedTransitioning {
             let fromView = fromVC.view,
             let toVC = transitionContext.viewController(forKey: UITransitionContextViewControllerKey.to),
             let toView = toVC.view,
-            let playerView = fromView.viewWithTag(WDPlayConf.playerLayerTag) else {
+            let playerView = fromView.viewWithTag(WDPlayerConf.playerLayerTag) else {
             return
         }
                         
@@ -97,13 +96,16 @@ class WDPlayerFullTransition: NSObject, UIViewControllerAnimatedTransitioning {
         containerView.addSubview(playerView)
         
         UIView.animate(withDuration: transitionDuration(using: transitionContext), delay: 0, options: .curveEaseOut) {
-            /**< fromView.backgroundColor = UIColor.black.withAlphaComponent(0) */
             playerView.frame = CGRect(x: 0, y: 0, width: originalWidth, height: originalHeight)
             playerView.transform = CGAffineTransform.identity
             playerView.center = CGPoint(x: width / 2, y: originalCenterY)
             playerView.layoutIfNeeded()
         } completion: { _ in
-            toView.addSubview(playerView)
+            if let navigationController = toVC as? UINavigationController, let viewController = navigationController.viewControllers.last {
+                viewController.view.addSubview(playerView)
+            } else {
+                toView.addSubview(playerView)
+            }
             transitionContext.completeTransition(!transitionContext.transitionWasCancelled)
         }
     }

@@ -42,7 +42,7 @@ extension WDPlayerLayerView {
 
     /// 设置拉伸类型
     /// - Parameter contentMode: contentMode
-    func setContentMode(_ contentMode: WDPlayConf.ContentMode) {
+    func setContentMode(_ contentMode: WDPlayerConf.ContentMode) {
         _setContentMode(contentMode)
     }
 
@@ -69,7 +69,7 @@ extension WDPlayerLayerView {
     /// 显示隐藏菊花
     /// - Parameter display: display
     func disPlayLoadingView(_ display: Bool = true, afterDelay: TimeInterval = 0.30) {
-        guard WDPlayConf.supportLodaing else { return }
+        guard WDPlayerConf.supportLodaing else { return }
         display ? touchView.showLoadingView(afterDelay: afterDelay) : touchView.hiddenLoadingView()
     }
 
@@ -100,7 +100,7 @@ extension WDPlayerLayerView {
 
 fileprivate extension WDPlayerLayerView {
     
-    func _setContentMode(_ contentMode: WDPlayConf.ContentMode) {
+    func _setContentMode(_ contentMode: WDPlayerConf.ContentMode) {
         contentModeType = contentMode
         
         /**< 有黑边的那种 */
@@ -143,13 +143,13 @@ fileprivate extension WDPlayerLayerView {
     @objc func showToolBar() {
         cancelHideToolbar()
 
-        if WDPlayConf.showTopBar == true, topBar.superview != nil {
+        if WDPlayerConf.showTopBar == true, topBar.superview != nil {
             topBar.snp.updateConstraints { (make) in
                 make.top.equalTo(0)
             }
         }
 
-        if WDPlayConf.showToolBar == true, topBar.superview != nil {
+        if WDPlayerConf.showToolBar == true, topBar.superview != nil {
             toolbarView.snp.updateConstraints { (make) in
                 make.bottom.equalTo(0)
             }
@@ -163,13 +163,13 @@ fileprivate extension WDPlayerLayerView {
     @objc func hiddenToolBar() {
         NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(hiddenToolBar), object: nil)
         
-        if WDPlayConf.showTopBar == true, topBar.superview != nil {
+        if WDPlayerConf.showTopBar == true, topBar.superview != nil {
             topBar.snp.updateConstraints { (make) in
                 make.top.equalTo(-topBarDistance)
             }
         }
 
-        if WDPlayConf.showToolBar == true, toolbarView.superview != nil {
+        if WDPlayerConf.showToolBar == true, toolbarView.superview != nil {
             toolbarView.snp.updateConstraints { (make) in
                 make.bottom.equalTo(bottomBarDistance)
             }
@@ -186,7 +186,7 @@ extension WDPlayerLayerView: WPPlayerViewBarDelegate, WDPlayerTouchViewDelegate 
 
     /**< 单击 */
     func singleTap(touchView: WDPlayerTouchView) {
-        if WDPlayConf.supportDoubleClick, isSupportToolBar == true {
+        if WDPlayerConf.supportDoubleClick, isSupportToolBar == true {
             handleBar()
         } else {
             suspend()
@@ -255,6 +255,7 @@ extension WDPlayerLayerView: WPPlayerViewBarDelegate, WDPlayerTouchViewDelegate 
         toolbarView.reset()
         contentsView.image = nil
         isSetFirstImage = false
+        touchView.hiddenLoadingView()
     }
 
     /**< 放大 */
@@ -268,7 +269,7 @@ extension WDPlayerLayerView: WPPlayerViewBarDelegate, WDPlayerTouchViewDelegate 
         originalSizePlay = frame.size
         originalCenterYPlay = WDPlayerAssistant.locationWindow_play(self).origin.y + (originalSizePlay.height / 2)
              
-        tag = WDPlayConf.playerLayerTag
+        tag = WDPlayerConf.playerLayerTag
         let rootViewController = UIApplication.shared.keyWindow?.rootViewController
         let fullViewController = WDPlayerFullViewController()
         fullViewController.modalPresentationStyle = .fullScreen
@@ -346,7 +347,7 @@ class WDPlayerLayerView: UIView {
     fileprivate var bottomBarDistance: CGFloat = 0
     fileprivate var isFullScreen: Bool = false
     fileprivate var isLayoutSubviews: Bool = false
-    fileprivate var contentModeType: WDPlayConf.ContentMode? = nil
+    fileprivate var contentModeType: WDPlayerConf.ContentMode? = nil
     fileprivate weak var fullViewController: WDPlayerFullViewController? = nil
 
     convenience init() {
@@ -362,8 +363,8 @@ class WDPlayerLayerView: UIView {
 
         addSubview(contentsView)
         addSubview(touchView)
-        if WDPlayConf.showTopBar { addSubview(topBar) }
-        if WDPlayConf.showToolBar { addSubview(toolbarView) }
+        if WDPlayerConf.showTopBar { addSubview(topBar) }
+        if WDPlayerConf.showToolBar { addSubview(toolbarView) }
         automaticLayout()
         cancelHideToolbar()
         setContentMode(.blackBorder)
@@ -378,33 +379,33 @@ class WDPlayerLayerView: UIView {
             make.edges.equalTo(0)
         }
 
-        if WDPlayConf.showTopBar == true {
+        if WDPlayerConf.showTopBar == true {
             if topBar.superview == nil { return }
             topBar.snp.makeConstraints { (make) in
                 make.left.right.top.equalTo(0)
-                make.height.equalTo(WDPlayConf.toolBarHeight)
+                make.height.equalTo(WDPlayerConf.toolBarHeight)
             }
         }
 
-        if WDPlayConf.showToolBar  == true {
+        if WDPlayerConf.showToolBar  == true {
             if toolbarView.superview == nil { return }
             toolbarView.snp.makeConstraints { (make) in
                 make.left.right.bottom.equalTo(0)
-                make.height.equalTo(WDPlayConf.toolBarHeight)
+                make.height.equalTo(WDPlayerConf.toolBarHeight)
             }
         }
 
-        topBarDistance = WDPlayConf.toolBarHeight
-        bottomBarDistance = WDPlayConf.toolBarHeight
+        topBarDistance = WDPlayerConf.toolBarHeight
+        bottomBarDistance = WDPlayerConf.toolBarHeight
     }
 
     /**< 更新约束 */
     fileprivate func fullConstraint(full: Bool = true) {
         
         /**< 顶部导航栏 */
-        let margin = (full ? 55 : 0)
-        if WDPlayConf.showTopBar == true, topBar.superview != nil {
-            topBarDistance = WDPlayConf.toolBarHeight + (full ? 25 : 0)
+        let margin = (full ? WDPlayerConf.playerToolMargin : 0)
+        if WDPlayerConf.showTopBar == true, topBar.superview != nil {
+            topBarDistance = WDPlayerConf.toolBarHeight + (full ? 25 : 0)
             topBar.fullConstraint(full: full)
             topBar.snp.updateConstraints { (make) in
                 make.left.equalTo(margin)
@@ -414,8 +415,8 @@ class WDPlayerLayerView: UIView {
         }
         
         /**< 底部导航栏 */
-        if WDPlayConf.showToolBar == true, toolbarView.superview != nil {
-            bottomBarDistance = WDPlayConf.toolBarHeight + (full ? (27) : 0)
+        if WDPlayerConf.showToolBar == true, toolbarView.superview != nil {
+            bottomBarDistance = WDPlayerConf.toolBarHeight + (full ? (27) : 0)
             toolbarView.fullConstraint(full: full)
             toolbarView.snp.updateConstraints { (make) in
                 make.left.equalTo(margin)
@@ -428,7 +429,7 @@ class WDPlayerLayerView: UIView {
     }
     
     /**< 动画转换 */
-    func layoutIfNeededAnimate(duration: TimeInterval = WDPlayConf.playerAnimationDuration) {
+    func layoutIfNeededAnimate(duration: TimeInterval = WDPlayerConf.playerAnimationDuration) {
         UIView.animate(withDuration: duration) {
             self.layoutIfNeeded()
         }

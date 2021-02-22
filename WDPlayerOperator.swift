@@ -11,43 +11,57 @@ import KTVHTTPCache
 
 @objc protocol WDPlayerSessionDelegate {
 
-    /**< 缓冲失败(链接失效) */
+    /// 缓冲失败(无法播放)
+    /// - Parameter play: play
     @objc optional func bufferFail(play: WDPlayerOperator)
 
-    /**< 缓冲成功(表示这个视频可以播放) */
+    /// 缓冲成功(表示这个视频可以播放)
+    /// - Parameter play: play
     @objc optional func bufferSuccess(play: WDPlayerOperator)
 
-    /**< 缓冲不足(显示菊花) */
+    /// 缓冲不足(卡顿中...)
+    /// - Parameter play: play
     @objc optional func bufferBufferEmpty(play: WDPlayerOperator)
 
-    /**< 缓冲足够当前视频播放  */
+    /// 缓冲足够当前视频播放
+    /// - Parameter play: play
     @objc optional func bufferEnough(play: WDPlayerOperator)
 
-    /// 进度回调
-    /// - Parameters:
+    /// 进度回调(!该回调在子线程中...)
     ///   - play: 播放器
     ///   - seconds: 进度单位秒
     @objc optional func playProgress(play: WDPlayerOperator, seconds: Int)
+
+    /// 播放结束回调
+    /// - Parameter play: play
+    @objc optional func playEnd(play: WDPlayerOperator)
+
+    /// 是否正在播放(指流畅播放)
+    /// - Parameters:
+    ///   - play: play
+    ///   - isFluentPlaying: isFluentPlaying
+    @objc optional func playFluentPlaying(play: WDPlayerOperator, isFluentPlaying: Bool)
+
 }
 
 extension WDPlayerOperator {
     
     /**< 播放 */
     func play() {
-
+        
         /**< 用户手动暂停的 不允许播放 */
         if status == .initiative { return }
         if status == .wait {
             backBagin(mandatory: true)
         }
-
+        
         player?.play()
         status = .play
         stopBuffer = false
         /**< playerItem?.preferredForwardBufferDuration = 0 */
         /**< playerItem?.preferredPeakBitRate = TimeInterval(100000) */
         /**< 当前播放的资源 */
-        WDPlayConf.currentPlayURL = playURL
+        WDPlayerConf.currentPlayURL = playURL
     }
     
     /**< 暂停 */
@@ -124,8 +138,7 @@ extension WDPlayerOperator {
         
         playerItem?.cancelPendingSeeks()
         playerItem?.asset.cancelLoading()
-        showPlayLoading(false)
-        
+                
         player?.pause()
         do {
             playerItem?.removeObserver(self, forKeyPath: "status")
@@ -163,8 +176,8 @@ extension WDPlayerOperator {
         reachabilityCallBacks[playURL] = nil
         
         NotificationCenter.default.removeObserver(self)
-        if WDPlayConf.currentPlayURL == playURL, playURL != nil {
-            WDPlayConf.currentPlayURL = nil
+        if WDPlayerConf.currentPlayURL == playURL, playURL != nil {
+            WDPlayerConf.currentPlayURL = nil
         }
     }
 }
@@ -269,8 +282,9 @@ class WDPlayerOperator: NSObject {
                 backgroundView?.isUserInteractionEnabled = true
                                
                 observerAny = player?.addPeriodicTimeObserver(forInterval: CMTime(value: 1, timescale: 1), queue: .global(), using: { [weak self] progressTime in
-                    self?.showPlayLoading(false)
-                    guard self?.isTracking == false, let self = self else { return }
+                    guard let self = self else { return }
+                    self.showPlayLoading(false)
+                    guard self.isTracking == false else { return }
                     let currentDuration = lroundf(Float(CMTimeGetSeconds(progressTime)))
                     self.currentDuration = currentDuration
                     
@@ -280,7 +294,14 @@ class WDPlayerOperator: NSObject {
                     }
                     
                     /**< 设置秒数 */
-                    self.delegate?.playProgress?(play: self, seconds: currentDuration)
+                    if WDPlayerConf.callingPlaybackProgress {
+                        if self.playURL == WDPlayerConf.currentPlayURL {
+                            self.delegate?.playProgress?(play: self, seconds: currentDuration)
+                        }
+                    } else {
+                        self.delegate?.playProgress?(play: self, seconds: currentDuration)
+                    }
+                                        
                     DispatchQueue.main.async {
                         self.playView.setCurrentDuration(currentDuration)
                     }
@@ -366,9 +387,9 @@ class WDPlayerOperator: NSObject {
             if playerItem?.isPlaybackBufferEmpty == true {
                 isToKeepUp = false
                 isFluentPlaying = false
+                delegate?.bufferBufferEmpty?(play: self)
                 
                 showPlayLoading()
-                delegate?.bufferBufferEmpty?(play: self)
                 playbackBufferEmpty()
                 kLogPrint("playbackBufferEmpty")
             }
@@ -378,6 +399,8 @@ class WDPlayerOperator: NSObject {
         if (keyPath == "playbackLikelyToKeepUp") {
             if playerItem?.isPlaybackLikelyToKeepUp == true {
                 isToKeepUp = true
+                delegate?.bufferEnough?(play: self)
+                
                 if status == .play {
                     play()
                 }
@@ -450,20 +473,21 @@ class WDPlayerOperator: NSObject {
             } else {
                 self.isFluentPlaying = true
                 self.playView.disPlayLoadingView(false)
+                self.delegate?.playFluentPlaying?(play: self, isFluentPlaying: true)
             }
-            
-            /**< player?.readyToPlay() */
         }
     }
     
     @objc fileprivate func showLoading() {
         isFluentPlaying = false
         playView.disPlayLoadingView(true)
+        delegate?.playFluentPlaying?(play: self, isFluentPlaying: false)
     }
 
     deinit {
         status = .pause
         destruction()
+        kLogPrint("deinit........")
     }
     
     /**< 网络状态 */
@@ -514,6 +538,8 @@ class WDPlayerOperator: NSObject {
     @objc fileprivate func playerItemDidReachEnd(notification: Notification) {
         if let item = notification.object as? AVPlayerItem, item == playerItem {
             backBagin(mandatory: true)
+            delegate?.playEnd?(play: self)
+            
             if isReplay, status == .play {
                 play()
             } else if isReplay == false {

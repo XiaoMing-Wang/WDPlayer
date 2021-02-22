@@ -139,7 +139,7 @@ class WPPlayerViewToolBar: UIView {
         
         suspendButton.snp.makeConstraints { (make) in
             make.left.top.equalTo(0)
-            make.width.height.equalTo(WDPlayConf.toolBarHeight)
+            make.width.height.equalTo(WDPlayerConf.toolBarHeight)
         }
 
         let width = startLabel.frame.size.width

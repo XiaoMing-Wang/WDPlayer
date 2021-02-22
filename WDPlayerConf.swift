@@ -7,12 +7,13 @@
 
 import UIKit
 
-class WDPlayConf: NSObject {
+class WDPlayerConf: NSObject {
     static var supportDoubleClick: Bool = true           /**< 是否支持双击 */
     static var supportLodaing: Bool = true               /**< 是否卡顿转圈 */
     static var showTopBar: Bool = true                   /**< 是否显示工具栏 */
     static var showToolBar: Bool = true                  /**< 是否显示工具栏 */
     static var supportPanGestureRecognizer: Bool = true  /**< 是否支持滑动手势 */
+    static var callingPlaybackProgress: Bool = true      /**< 只回调正在播放的视频的进度  */
 
     /**< 进度调节 */
     static let playerProgressAdjustment: CGFloat = 240
@@ -24,6 +25,7 @@ class WDPlayConf: NSObject {
     /**< 全屏视频比例 以手机(竖屏时)宽度为基准 */
     static let playerFullProportion: CGFloat = (16.0 / 9)
     static let playerAnimationDuration: TimeInterval = 0.30
+    static let playerToolMargin: CGFloat = (safeBottom() > 0 ? 55 : 25)
 
     /**< 当前播放url */
     static var currentPlayURL: String? = nil
