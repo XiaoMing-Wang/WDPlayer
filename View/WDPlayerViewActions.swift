@@ -29,7 +29,10 @@ class WDPlayTouchActionProgress: UIView {
             backgroundColor = UIColor.black.withAlphaComponent(0.0)
             return
         }
-        UIView.animate(withDuration: 0.125) { self.backgroundColor = UIColor.black.withAlphaComponent(0.30) }
+        
+        UIView.animate(withDuration: 0.125) {
+            self.backgroundColor = UIColor.black.withAlphaComponent(0.30)
+        }
     }
          
     convenience init(totalTime: Int) {

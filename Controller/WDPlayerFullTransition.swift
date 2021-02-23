@@ -50,7 +50,8 @@ class WDPlayerFullTransition: NSObject, UIViewControllerAnimatedTransitioning {
         let playerWidth = playerView.frame.size.height
         let playerHeight = playerView.frame.size.width
         let originalCenterXPlay = playerView.originalCenterYPlay
-        
+        playerView.originalSupView = playerView.superview
+              
         /**< 横屏toView还未来得及切换宽高 */
         toView.frame = CGRect(x: 0, y: 0, width: width, height: height)
         toView.addSubview(playerView)
@@ -97,12 +98,13 @@ class WDPlayerFullTransition: NSObject, UIViewControllerAnimatedTransitioning {
         
         UIView.animate(withDuration: transitionDuration(using: transitionContext), delay: 0, options: .curveEaseOut) {
             playerView.frame = CGRect(x: 0, y: 0, width: originalWidth, height: originalHeight)
-            playerView.transform = CGAffineTransform.identity
+            playerView.transform = .identity
             playerView.center = CGPoint(x: width / 2, y: originalCenterY)
             playerView.layoutIfNeeded()
         } completion: { _ in
-            if let navigationController = toVC as? UINavigationController, let viewController = navigationController.viewControllers.last {
-                viewController.view.addSubview(playerView)
+            if let originalSupView = playerView.originalSupView {
+                originalSupView.addSubview(playerView)
+                playerView.frame = CGRect(x: 0, y: 0, width: playerView.frame.width, height: playerView.frame.height)
             } else {
                 toView.addSubview(playerView)
             }

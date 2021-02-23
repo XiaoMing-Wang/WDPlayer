@@ -138,7 +138,8 @@ extension WDPlayerOperator {
         
         playerItem?.cancelPendingSeeks()
         playerItem?.asset.cancelLoading()
-                
+        if removeSuperview { playView.removeFromSuperview() }
+        
         player?.pause()
         do {
             playerItem?.removeObserver(self, forKeyPath: "status")
@@ -148,9 +149,8 @@ extension WDPlayerOperator {
             playerItem?.removeObserver(self, forKeyPath: "loadedTimeRanges")
             player?.removeObserver(self, forKeyPath: "timeControlStatus")
             player?.removeObserver(self, forKeyPath: "rate")
-            
-        } catch {}
-
+        } catch { }
+        
         if let observerAny = self.observerAny {
             player?.removeTimeObserver(observerAny)
             self.observerAny = nil
@@ -248,13 +248,12 @@ class WDPlayerOperator: NSObject {
     fileprivate var playerItem: AVPlayerItem? = nil
     fileprivate var observerAny: Any? = nil
     fileprivate var reachabilityCallBack: (() -> ())? = nil
-    fileprivate weak var backgroundView: UIView? = nil
-
+   
     /**< 网络 */
-    convenience init(playURL: String, stopBuffer: Bool = false, background: UIView? = nil) {
+    convenience init(playURL: String, stopBuffer: Bool = false, content: UIView? = nil) {
         self.init()
         self.stopBuffer = stopBuffer
-        self.backgroundView = background
+        self.playView.setContentView(content)
         self.replaceItem(playURL: playURL)
     }
 
@@ -273,14 +272,11 @@ class WDPlayerOperator: NSObject {
                 playerLayer = AVPlayerLayer(player: player)
                 kLogPrint("视频准备播放...\(playURL)")
                 
-                /**< 视频界面大小和backgroundView一致 */
+                /**< 视频界面 */
                 playView.delegate = self
                 playView.reset()
                 playView.setPlaybackLayer(player: player)
-                playView.frame = backgroundView?.bounds ?? .zero
-                backgroundView?.addSubview(playView)
-                backgroundView?.isUserInteractionEnabled = true
-                               
+                                            
                 observerAny = player?.addPeriodicTimeObserver(forInterval: CMTime(value: 1, timescale: 1), queue: .global(), using: { [weak self] progressTime in
                     guard let self = self else { return }
                     self.showPlayLoading(false)
@@ -367,7 +363,10 @@ class WDPlayerOperator: NSObject {
             }
         }
     
-        if (keyPath == "rate") { }
+        if (keyPath == "rate") {
+            
+            
+        }
         
         /**< 播放状态 ios10+ */
         if (keyPath == "timeControlStatus") {
@@ -431,13 +430,10 @@ class WDPlayerOperator: NSObject {
                 kLogPrint("视频缓冲失败 :\(playURL!)")
                 kLogPrint("视频缓冲失败 :\(playerItem!.error.debugDescription)")
                 if (playerItem?.error as NSError?)?.code == -11829, retryCount == false, let _ = playURL {
-                    
                     retryCount = true
                     retryloade()
-                    
+
                 } else {
-                    
-                    /**< 缓存失败 */
                     delegate?.bufferFail?(play: self)
                 }
             }
@@ -465,6 +461,7 @@ class WDPlayerOperator: NSObject {
         }
     }
 
+    /**< 显示菊花 */
     fileprivate func showPlayLoading(_ disPlay: Bool = true) {
         DispatchQueue.main.async {
             NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(self.showLoading), object: nil)
@@ -486,8 +483,7 @@ class WDPlayerOperator: NSObject {
 
     deinit {
         status = .pause
-        destruction()
-        kLogPrint("deinit........")
+        destruction(removeSuperview: true)
     }
     
     /**< 网络状态 */

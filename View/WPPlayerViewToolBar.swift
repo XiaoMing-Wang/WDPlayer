@@ -29,7 +29,20 @@ protocol WPPlayerViewBarDelegate: class {
 }
 
 class WPPlayerViewToolBar: UIView {
-
+    
+    /**< 支持横屏 */
+    public var isSupportFullScreen: Bool = true {
+        didSet {
+            if isSupportFullScreen == false {
+                fullButton.removeFromSuperview()
+                automaticLayout()
+            } else {
+                addSubview(fullButton)
+                automaticLayout()
+            }
+        }
+    }
+    
     /**< 总时间 */
     public var totalTime: Int = 0 {
         didSet {
@@ -63,26 +76,7 @@ class WPPlayerViewToolBar: UIView {
             suspendButton.isSelected = isSuspended
         }
     }
-    
-    /**< 支持横屏 */
-    var isSupportFullScreen: Bool = true {
-        didSet {
-            if isSupportFullScreen == false {
-                fullButton.snp.removeConstraints()
-                fullButton.removeFromSuperview()
-                endLabel.snp.removeConstraints()
-                endLabel.text = "44:44"
-                endLabel.sizeToFit()
-                endLabel.text = "00:00"
-                endLabel.snp.remakeConstraints { (make) in
-                    make.right.equalToSuperview().offset(-15)
-                    make.centerY.equalTo(suspendButton)
-                    make.width.equalTo(endLabel.frame.size.width)
-                }
-            }
-        }
-    }
-
+  
     /**< 全屏 */
     public var isFullScreen: Bool = false {
         didSet {
@@ -100,12 +94,12 @@ class WPPlayerViewToolBar: UIView {
         progressView.progress = 0
         progressSlider.value = 0
         startLabel.text = "00:00"
+        endLabel.text = "00:00"
     }
      
     fileprivate weak var delegate: WPPlayerViewBarDelegate? = nil
     var suspendClosure: ((Bool) -> Void)? = nil
-    var cancelClosure: (() -> Void)? = nil
-
+  
     convenience init (totalTime: Int, delegate: WPPlayerViewBarDelegate?) {
         self.init()
         self.delegate = delegate
@@ -131,53 +125,57 @@ class WPPlayerViewToolBar: UIView {
 
     /**< 布局 */
     fileprivate func automaticLayout() {
-        bottomShadow.snp.makeConstraints { (make) in
+        bottomShadow.snp.remakeConstraints { (make) in
             make.top.bottom.equalTo(0)
             make.left.equalTo(-60)
             make.right.equalTo(60)
         }
         
-        suspendButton.snp.makeConstraints { (make) in
+        suspendButton.snp.remakeConstraints { (make) in
             make.left.top.equalTo(0)
             make.width.height.equalTo(WDPlayerConf.toolBarHeight)
         }
 
         let width = startLabel.frame.size.width
         startLabel.text = "00:00"
-        startLabel.snp.makeConstraints { (make) in
+        startLabel.snp.remakeConstraints { (make) in
             make.left.equalTo(suspendButton.snp.right).offset(3)
             make.width.equalTo(width)
             make.centerY.equalTo(suspendButton)
         }
 
-        fullButton.snp.makeConstraints { (make) in
-            make.right.equalTo(0)
-            make.top.equalTo(0)
-            make.width.height.equalTo(suspendButton)
+        if fullButton.superview != nil {
+            fullButton.snp.remakeConstraints { (make) in
+                make.right.equalTo(0)
+                make.top.equalTo(0)
+                make.width.height.equalTo(suspendButton)
+            }
         }
-
+        
         let endWidth = endLabel.frame.size.width
+        let isFull = (fullButton.superview != nil)
         endLabel.text = "00:00"
-        endLabel.snp.makeConstraints { (make) in
-            make.right.equalTo(fullButton.snp.left).offset(-3)
+        endLabel.snp.remakeConstraints { (make) in
             make.centerY.equalTo(suspendButton)
             make.width.equalTo(endWidth)
+            if isFull { make.right.equalTo(fullButton.snp.left).offset(-3)
+            } else { make.right.equalToSuperview().offset(-15) }
         }
 
-        touchButton.snp.makeConstraints { (make) in
+        touchButton.snp.remakeConstraints { (make) in
             make.top.equalTo(0)
             make.height.equalTo(suspendButton)
             make.left.equalTo(startLabel.snp.right).offset(10)
             make.right.greaterThanOrEqualTo(endLabel.snp.left).offset(-10)
         }
 
-        progressView.snp.makeConstraints { (make) in
+        progressView.snp.remakeConstraints { (make) in
             make.height.equalTo(3)
             make.left.centerY.equalToSuperview()
             make.right.equalToSuperview()
         }
 
-        progressSlider.snp.makeConstraints { (make) in
+        progressSlider.snp.remakeConstraints { (make) in
             make.edges.equalTo(0)
         }
     }
@@ -186,7 +184,7 @@ class WPPlayerViewToolBar: UIView {
     fileprivate func setProgress() {
         guard totalTime > 0 else { return }
         let progress = Float(currentlTime) / Float(totalTime)
-        progressSlider.value = progress
+        progressSlider.setValue(progress, animated: true)
     }
 
     /**< 暂停 */

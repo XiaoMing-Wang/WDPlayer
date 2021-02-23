@@ -43,13 +43,21 @@ extension WDPlayerTouchView {
             loadingView.isHidden = true
         }
     }
-    
+
     /// 删除双击
     func deleDoubleClick() {
         remoGestureRecognizer(doubleGesture)
         remoGestureRecognizer(singleGesture)
         remoGestureRecognizer(panGestureRecognizer)
         WDPlayerAssistant.addTapGesture(self, taps: 1, touches: 1, selector: #selector(singleTap))
+    }
+
+    /// 增加双击
+    func addDoubleClick() {
+        remoGestureRecognizer(doubleGesture)
+        remoGestureRecognizer(singleGesture)
+        remoGestureRecognizer(panGestureRecognizer)
+        addGestures()
     }
 
 }
@@ -68,8 +76,8 @@ extension WDPlayerTouchView {
         /**< 开始触摸判断方向 */
         if (pan.state == .began) {
             hidenAllControl()
-            NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(hidenDelay), object: nil)
-            
+            playerCancelPrevious(selector: #selector(hidenDelay), afterDelay: -1)
+                        
             panDirection = .free
             horizontalX = location.x
             verticalY = location.y
@@ -204,6 +212,7 @@ extension WDPlayerTouchView {
     }
     
     func hidenAllControl() {
+        playerCancelPrevious(selector: #selector(hidenDelay), afterDelay: -1)
         actionProgress.isHidden = true
         brightness.isHidden = true
         volume.isHidden = true
@@ -220,8 +229,8 @@ class WDPlayerTouchView: UIView {
 
     enum PanDirection {
         case free
-        case horizontal //水平
-        case verticalLeft //竖直左
+        case horizontal    //水平
+        case verticalLeft  //竖直左
         case verticalRight //竖直右
     }
 
@@ -287,6 +296,7 @@ class WDPlayerTouchView: UIView {
 
     @objc func doubleTap() {
         suspendButton.alpha = 1
+        hidenAllControl()
         delegate?.doubleTap(touchView: self)
     }
 
@@ -351,6 +361,11 @@ class WDPlayerTouchView: UIView {
             self.addGestureRecognizer(panGestureRecognizer)
             self.panGestureRecognizer = panGestureRecognizer
             self.panGestureRecognizer?.isEnabled = false
+            if let vc = UIViewController.currentVC() {
+                do {
+                    vc.navigationController?.interactivePopGestureRecognizer?.require(toFail: panGestureRecognizer)
+                } catch { }
+            }
         }
     }
             
@@ -385,8 +400,7 @@ class WDPlayerTouchView: UIView {
                 }
             }
             volume.progress = Int(volumeValue * 100)
-            NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(hidenDelay), object: nil)
-            perform(#selector(hidenDelay), with: nil, afterDelay: 2)
+            playerCancelPrevious(selector: #selector(hidenDelay), afterDelay: 2)
         }
     }
 
