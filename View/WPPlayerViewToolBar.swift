@@ -35,11 +35,10 @@ class WPPlayerViewToolBar: UIView {
         didSet {
             if isSupportFullScreen == false {
                 fullButton.removeFromSuperview()
-                automaticLayout()
             } else {
                 addSubview(fullButton)
-                automaticLayout()
             }
+            automaticLayout()
         }
     }
     

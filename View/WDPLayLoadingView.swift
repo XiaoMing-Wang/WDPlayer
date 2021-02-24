@@ -8,7 +8,8 @@
 import UIKit
 
 class WDPLayLoadingView: UIView {
-
+    
+    static var share: WDPLayLoadingView? = WDPLayLoadingView(frame: CGRect(x: 0, y: 0, width: 35, height: 35))
     fileprivate var displayLink: CADisplayLink? = nil
     fileprivate var animationLayer: CAShapeLayer? = nil
     fileprivate var startAngle: Double = 0
@@ -26,14 +27,19 @@ class WDPLayLoadingView: UIView {
     }
     
     func start() {
-        guard !isPlaying else { return }
+        guard isPlaying == false else { return }
         isPlaying = true
         displayLink?.isPaused = false
+        isHidden = false
     }
 
     func hide() {
+        guard isPlaying else { return }
+        progress = 0
         isPlaying = false
         displayLink?.isPaused = true
+        isHidden = true
+        updateAnimationLayer()
     }
 
     func initialize() {

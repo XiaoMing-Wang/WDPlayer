@@ -72,7 +72,7 @@ class WPPlayerViewTopBar: UIView {
         titleLabels.font = .systemFont(ofSize: 15)
         titleLabels.textColor = .white
         titleLabels.numberOfLines = 1
-        titleLabels.text = "电影名字阿阿阿阿阿阿阿阿阿阿阿阿阿阿阿阿~"
+        titleLabels.text = "电影名字~~~~~~~~~~~~"
         return titleLabels
     }()
 
