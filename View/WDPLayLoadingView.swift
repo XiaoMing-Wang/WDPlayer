@@ -34,7 +34,6 @@ class WDPLayLoadingView: UIView {
     }
 
     func hide() {
-        guard isPlaying else { return }
         progress = 0
         isPlaying = false
         displayLink?.isPaused = true

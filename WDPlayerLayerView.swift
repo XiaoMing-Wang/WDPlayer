@@ -208,11 +208,19 @@ class WDPlayerLayerView: UIView {
             }
         }
     }
+    
+    /**< 暂停 */
+    public var isSuspended: Bool = false {
+        didSet {
+            if hasSupview(touchView) {
+                touchView.isSuspended = isSuspended
+            }
+        }
+    }
 
     fileprivate(set) var isSetFirstImage: Bool = false
     fileprivate var totalTime: Int = 0
     fileprivate var currentlTime: Int = 0
-    fileprivate var isSuspended: Bool = false
     fileprivate var isAnimation: Bool = false
     fileprivate var isShowToolBar: Bool = true
     fileprivate var topBarDistance: CGFloat = 0

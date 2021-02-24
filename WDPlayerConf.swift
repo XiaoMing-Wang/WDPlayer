@@ -11,19 +11,19 @@ import UIKit
 class WDPlayerConf: NSObject {
 
     /**< 默认是有bar无bar */
-    static var supportToolbar: Bool = true
+    static var supportToolbar: Bool = false
 
     /**< 是否支持双击 */
     static var supportDoubleClick: Bool = supportToolbar
 
+    /**< 是否支持滑动手势 */
+    static var supportPanGestureRecognizer: Bool = false
+    
     /**< 是否卡顿转圈 */
     static var supportLodaing: Bool = true
 
-    /**< 是否支持滑动手势 */
-    static var supportPanGestureRecognizer: Bool = false
-
     /**< 只回调正在播放的视频的进度  */
-    static var callingPlaybackProgress: Bool = false
+    static var callingPlaybackProgress: Bool = true
 
     /**< 进度调节 */
     static let playerProgressAdjustment: CGFloat = 240

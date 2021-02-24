@@ -549,6 +549,7 @@ class WDPlayerOperator: NSObject {
         if status == .play {
             pause()
             status = .background
+            /**< playView.isSuspended = true */
         }
     }
     
@@ -556,6 +557,7 @@ class WDPlayerOperator: NSObject {
     @objc fileprivate func becomeActive() {
         if status == .background {
             play()
+            /**< playView.isSuspended = false */
         }
     }
 
