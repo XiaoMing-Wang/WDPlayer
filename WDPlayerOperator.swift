@@ -141,6 +141,7 @@ extension WDPlayerOperator {
         playerItem?.removeObserver(self, forKeyPath: "playbackLikelyToKeepUp")
         playerItem?.removeObserver(self, forKeyPath: "playbackBufferFull")
         playerItem?.removeObserver(self, forKeyPath: "loadedTimeRanges")
+        playerItem?.removeObserver(self, forKeyPath: "presentationSize")
         player?.removeObserver(self, forKeyPath: "timeControlStatus")
         player?.removeObserver(self, forKeyPath: "rate")
         
@@ -215,6 +216,7 @@ class WDPlayerOperator: NSObject {
     fileprivate(set) var duration: Int = -1
     fileprivate(set) var currentDuration: Int = 0
     fileprivate(set) var bufferDuration: Int = 0
+    fileprivate(set) var presenSize: CGSize = .zero
     
     /**< 播放状态 */
     fileprivate(set) var status: Status = .unknow
@@ -302,6 +304,7 @@ class WDPlayerOperator: NSObject {
                 playerItem?.canUseNetworkResourcesForLiveStreamingWhilePaused = false
                 playerItem?.preferredForwardBufferDuration = 5
                 playerItem?.addObserver(self, forKeyPath: "status", options: .new, context: nil)
+                playerItem?.addObserver(self, forKeyPath: "presentationSize", options: .new, context: nil)
                 playerItem?.addObserver(self, forKeyPath: "playbackBufferEmpty", options: .new, context: nil)
                 playerItem?.addObserver(self, forKeyPath: "playbackLikelyToKeepUp", options: .new, context: nil)
                 playerItem?.addObserver(self, forKeyPath: "playbackBufferFull", options: .new, context: nil)
@@ -356,9 +359,8 @@ class WDPlayerOperator: NSObject {
             }
         }
     
-        if (keyPath == "rate") {
-            
-            
+        if (keyPath == "presentationSize") {
+            presenSize = playerItem?.presentationSize ?? .zero;
         }
         
         /**< 播放状态 ios10+ */

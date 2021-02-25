@@ -168,7 +168,7 @@ class WDPlayerLayerView: UIView {
         }
     }
     
-    /**< 是否支持亮度音量调节 (只能关闭竖屏) */
+    /**< 是否支持亮度音量调节 (只竖屏关闭) */
     var isSupportVolumeBrightness: Bool = true {
         didSet {
             touchView.isSupportVolumeBrightness = isSupportVolumeBrightness
