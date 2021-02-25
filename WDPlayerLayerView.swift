@@ -253,6 +253,9 @@ class WDPlayerLayerView: UIView {
         automaticLayout()
         cancelHideToolbar()
         setContentMode(.blackBorder)
+        if isSupportBottomProgress, isSupportToolBar {
+            progressView.isHidden = true
+        }
     }
 
     fileprivate func automaticLayout() {
@@ -483,7 +486,6 @@ extension WDPlayerLayerView: WPPlayerViewBarDelegate, WDPlayerTouchViewDelegate 
             self.touchView.isFullScreen = false
             self.toolbarView.isFullScreen = false
             self.tag = 0
-            if self.isSupportBottomProgress { self.progressView.isHidden = false }
         })
     }
     
@@ -543,8 +545,10 @@ extension WDPlayerLayerView: WPPlayerViewBarDelegate, WDPlayerTouchViewDelegate 
             }
         }
 
+        
         isShowToolBar = true
         layoutIfNeededAnimate(duration: 0.25)
+        if isSupportBottomProgress { progressView.isHidden = true }
     }
 
     /**< 隐藏导航栏 */
@@ -565,6 +569,13 @@ extension WDPlayerLayerView: WPPlayerViewBarDelegate, WDPlayerTouchViewDelegate 
 
         isShowToolBar = false
         layoutIfNeededAnimate(duration: 0.25)
+        if isSupportBottomProgress, isFullScreen == false {
+            progressView.alpha = 0
+            progressView.isHidden = false
+            UIView.animate(withDuration: 0.35, delay: 0.1, options: .curveLinear) {
+                self.progressView.alpha = 1
+            } completion: { _ in }
+        }
     }
     
     fileprivate func setProgress() {

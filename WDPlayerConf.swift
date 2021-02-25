@@ -11,13 +11,13 @@ import UIKit
 class WDPlayerConf: NSObject {
 
     /**< 默认是有bar无bar */
-    static var supportToolbar: Bool = false
+    static var supportToolbar: Bool = true
 
     /**< 是否支持双击 */
     static var supportDoubleClick: Bool = supportToolbar
 
     /**< 是否支持滑动手势 */
-    static var supportPanGestureRecognizer: Bool = false
+    static var supportPanGestureRecognizer: Bool = true
     
     /**< 是否卡顿转圈 */
     static var supportLodaing: Bool = true

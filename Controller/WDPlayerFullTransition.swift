@@ -105,6 +105,7 @@ class WDPlayerFullTransition: NSObject, UIViewControllerAnimatedTransitioning {
             if let originalSupView = playerView.originalSupView {
                 originalSupView.addSubview(playerView)
                 playerView.frame = CGRect(x: 0, y: 0, width: playerView.frame.width, height: playerView.frame.height)
+                playerView.originalSupView = nil
             } else {
                 toView.addSubview(playerView)
             }

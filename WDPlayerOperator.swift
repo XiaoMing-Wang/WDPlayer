@@ -19,7 +19,7 @@ import KTVHTTPCache
     /// - Parameter play: play
     @objc optional func bufferSuccess(play: WDPlayerOperator)
 
-    /// 缓冲不足(卡顿中...)
+    /// 缓冲不足
     /// - Parameter play: play
     @objc optional func bufferBufferEmpty(play: WDPlayerOperator)
 
@@ -58,8 +58,7 @@ extension WDPlayerOperator {
         player?.play()
         status = .play
         stopBuffer = false
-        /**< playerItem?.preferredForwardBufferDuration = 0 */
-        /**< playerItem?.preferredPeakBitRate = TimeInterval(100000) */
+        
         /**< 当前播放的资源 */
         WDPlayerConf.currentPlayURL = playURL
     }
@@ -77,10 +76,6 @@ extension WDPlayerOperator {
     func stop() {
         status = .wait
         stopBuffer = true
-        /**< playerItem?.preferredForwardBufferDuration = TimeInterval(0.1) */
-        /**< playerItem?.preferredPeakBitRate = 1 */
-        /**< playerItem?.seek(to: CMTimeMakeWithSeconds(100000, preferredTimescale: 1)) */
-        /**< player?.seek(to: CMTimeMakeWithSeconds(100000, preferredTimescale: 1)) */
         playerItem?.canUseNetworkResourcesForLiveStreamingWhilePaused = false
         playerItem?.cancelPendingSeeks()
         playerItem?.asset.cancelLoading()
@@ -141,15 +136,13 @@ extension WDPlayerOperator {
         if removeSuperview { playView.removeFromSuperview() }
         
         player?.pause()
-        do {
-            playerItem?.removeObserver(self, forKeyPath: "status")
-            playerItem?.removeObserver(self, forKeyPath: "playbackBufferEmpty")
-            playerItem?.removeObserver(self, forKeyPath: "playbackLikelyToKeepUp")
-            playerItem?.removeObserver(self, forKeyPath: "playbackBufferFull")
-            playerItem?.removeObserver(self, forKeyPath: "loadedTimeRanges")
-            player?.removeObserver(self, forKeyPath: "timeControlStatus")
-            player?.removeObserver(self, forKeyPath: "rate")
-        } catch { }
+        playerItem?.removeObserver(self, forKeyPath: "status")
+        playerItem?.removeObserver(self, forKeyPath: "playbackBufferEmpty")
+        playerItem?.removeObserver(self, forKeyPath: "playbackLikelyToKeepUp")
+        playerItem?.removeObserver(self, forKeyPath: "playbackBufferFull")
+        playerItem?.removeObserver(self, forKeyPath: "loadedTimeRanges")
+        player?.removeObserver(self, forKeyPath: "timeControlStatus")
+        player?.removeObserver(self, forKeyPath: "rate")
         
         if let observerAny = self.observerAny {
             player?.removeTimeObserver(observerAny)
@@ -528,6 +521,7 @@ class WDPlayerOperator: NSObject {
         NotificationCenter.default.addObserver(self, selector: #selector(playerItemDidReachEnd(notification:)), name: .AVPlayerItemDidPlayToEndTime, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(resignActive), name: UIApplication.willResignActiveNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(becomeActive), name: UIApplication.didBecomeActiveNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(becomeActive), name: UIApplication.willEnterForegroundNotification, object: nil)
     }
 
     /**< 播放结束 */
@@ -546,18 +540,18 @@ class WDPlayerOperator: NSObject {
 
     /**< 后台 */
     @objc fileprivate func resignActive() {
-        if status == .play {
+        if status == .play || status == .background {
             pause()
             status = .background
-            /**< playView.isSuspended = true */
+            playView.isSuspended = true
         }
     }
-    
+
     /**< 前台 */
     @objc fileprivate func becomeActive() {
-        if status == .background {
+        if status == .background || status == .play {
             play()
-            /**< playView.isSuspended = false */
+            playView.isSuspended = false
         }
     }
 

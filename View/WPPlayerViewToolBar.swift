@@ -284,7 +284,8 @@ class WPPlayerViewToolBar: UIView {
         touchButton.isUserInteractionEnabled = false
         return touchButton
     }()
-
+    
+   
     fileprivate lazy var progressView: UIProgressView = {
         var progressView = UIProgressView(progressViewStyle: .default)
         progressView.progress = 0

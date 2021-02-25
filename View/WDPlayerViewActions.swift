@@ -12,14 +12,14 @@ class WDPlayTouchActionProgress: UIView {
     /**< 总时间 */
     public var totalTime: Int = 0 {
         didSet {
-            totalTimeLabel.text = " / " + WDPlayerAssistant.timeTranslate(totalTime)
+            progressTimeLabel.text = WDPlayerAssistant.timeTranslate(currentlTime) + " / " + WDPlayerAssistant.timeTranslate(totalTime)
         }
     }
 
     /**< 当前时间 */
     public var currentlTime: Int = 0 {
         didSet {
-            currentlTimeLabel.text = WDPlayerAssistant.timeTranslate(currentlTime)
+            progressTimeLabel.text = WDPlayerAssistant.timeTranslate(currentlTime) + " / " + WDPlayerAssistant.timeTranslate(totalTime)
         }
     }
 
@@ -43,41 +43,24 @@ class WDPlayTouchActionProgress: UIView {
         
     fileprivate func initializationInterface() {
         isUserInteractionEnabled = false
-        addSubview(currentlTimeLabel)
-        addSubview(totalTimeLabel)
+        addSubview(progressTimeLabel)
         automaticLayout()
     }
-
+    
     fileprivate func automaticLayout() {
-        currentlTimeLabel.snp.makeConstraints { (make) in
-            make.centerY.equalToSuperview()
-            make.right.equalTo(self.snp.centerX).offset(-5)
-        }
-
-        totalTimeLabel.snp.makeConstraints { (make) in
-            make.centerY.equalToSuperview()
-            make.left.equalTo(currentlTimeLabel.snp.right)
+        progressTimeLabel.snp.makeConstraints { (make) in
+            make.width.centerY.equalToSuperview()
         }
     }
-    
-    public lazy var currentlTimeLabel: UILabel = {
-        var currentlTimeLabel = UILabel()
-        currentlTimeLabel.textAlignment = .left
-        currentlTimeLabel.font = .systemFont(ofSize: 35)
-        currentlTimeLabel.textColor = .white
-        currentlTimeLabel.numberOfLines = 1
-        currentlTimeLabel.text = WDPlayerAssistant.timeTranslate(totalTime)
-        return currentlTimeLabel
-    }()
-    
-    public lazy var totalTimeLabel: UILabel = {
-        var totalTimeLabel = UILabel()
-        totalTimeLabel.textAlignment = .left
-        totalTimeLabel.font = .systemFont(ofSize: 35)
-        totalTimeLabel.textColor = .white
-        totalTimeLabel.numberOfLines = 1
-        totalTimeLabel.text = " / " + WDPlayerAssistant.timeTranslate(totalTime)
-        return totalTimeLabel
+        
+    public lazy var progressTimeLabel: UILabel = {
+        var progressTimeLabel = UILabel()
+        progressTimeLabel.textAlignment = .center
+        progressTimeLabel.font = .systemFont(ofSize: 35)
+        progressTimeLabel.textColor = .white
+        progressTimeLabel.numberOfLines = 1
+        progressTimeLabel.text = " / " + WDPlayerAssistant.timeTranslate(totalTime)
+        return progressTimeLabel
     }()
     
 }
