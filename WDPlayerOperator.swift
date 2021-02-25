@@ -114,11 +114,17 @@ extension WDPlayerOperator {
         isTracking = true
         NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(resetTracking), object: nil)
 
-        player?.pause()
         playerItem?.cancelPendingSeeks()
+        player?.pause()
         player?.seek(to: CMTimeMakeWithSeconds(Float64(seconds), preferredTimescale: 1), toleranceBefore: .zero, toleranceAfter: .zero, completionHandler: { [weak self] in
-            if self?.status == .play, $0 == true {
+            if self?.status == .play, $0 == true, self?.playerItem?.isPlaybackLikelyToKeepUp == true {
                 self?.player?.play()
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.75) {
+                    if self?.status == .play { self?.player?.play() }
+                }
+                
+            } else if self?.status == .play, $0 == true {
+                self?.playbackBufferEmpty(afterDelay: 1.25)
             }
         })
         perform(#selector(resetTracking), with: nil, afterDelay: 1.0)
@@ -156,8 +162,7 @@ extension WDPlayerOperator {
         retryCount = false
         isToKeepUp = false
         isFluentPlaying = false
-        isLoadTimeControlStatus = false
-                
+                       
         status = .destruction
         playerLayer?.removeFromSuperlayer()
         playURL = nil
@@ -202,7 +207,9 @@ class WDPlayerOperator: NSObject {
     /**< 是否获取第一帧 */
     public var getFirstRate: Bool = false {
         didSet {
-            if getFirstRate { setCover() }
+            if getFirstRate {
+                setCover()
+            }
         }
     }
 
@@ -216,6 +223,8 @@ class WDPlayerOperator: NSObject {
     fileprivate(set) var duration: Int = -1
     fileprivate(set) var currentDuration: Int = 0
     fileprivate(set) var bufferDuration: Int = 0
+    
+    /**< 视频Size */
     fileprivate(set) var presenSize: CGSize = .zero
     
     /**< 播放状态 */
@@ -226,18 +235,17 @@ class WDPlayerOperator: NSObject {
 
     /**< 是否可以直接播放(缓冲足够) */
     fileprivate(set) var isToKeepUp: Bool = false
-    fileprivate(set) var isLoadTimeControlStatus: Bool = false
-    
+        
     /**< 是否流畅播放 */
     fileprivate(set) var isFluentPlaying: Bool = false
-    fileprivate(set) var isTracking: Bool = false
-
+    
     /**< 播放资源 */
     fileprivate(set) var playURL: String? = nil
     fileprivate(set) var proxyUrl: URL? = nil
 
-    /**< 失败重试次数 */
+    /**< 失败 */
     fileprivate var retryCount: Bool = false
+    fileprivate var isTracking: Bool = false
     fileprivate var player: AVPlayer? = nil
     fileprivate var playerLayer: AVPlayerLayer? = nil
     fileprivate var playerItem: AVPlayerItem? = nil
@@ -271,7 +279,6 @@ class WDPlayerOperator: NSObject {
                 playView.delegate = self
                 playView.reset()
                 playView.setPlaybackLayer(player: player)
-                                            
                 observerAny = player?.addPeriodicTimeObserver(forInterval: CMTime(value: 1, timescale: 1), queue: .global(), using: { [weak self] progressTime in
                     guard let self = self else { return }
                     self.showPlayLoading(false)
@@ -285,11 +292,9 @@ class WDPlayerOperator: NSObject {
                     }
                     
                     /**< 设置秒数 */
-                    if WDPlayerConf.callingPlaybackProgress {
-                        if self.playURL == WDPlayerConf.currentPlayURL {
-                            self.delegate?.playProgress?(play: self, seconds: currentDuration)
-                        }
-                    } else {
+                    if WDPlayerConf.callingPlaybackProgress, self.playURL == WDPlayerConf.currentPlayURL {
+                        self.delegate?.playProgress?(play: self, seconds: currentDuration)
+                    } else if WDPlayerConf.callingPlaybackProgress == false {
                         self.delegate?.playProgress?(play: self, seconds: currentDuration)
                     }
                                         
@@ -360,7 +365,7 @@ class WDPlayerOperator: NSObject {
         }
     
         if (keyPath == "presentationSize") {
-            presenSize = playerItem?.presentationSize ?? .zero;
+            presenSize = playerItem?.presentationSize ?? .zero
         }
         
         /**< 播放状态 ios10+ */
@@ -372,8 +377,6 @@ class WDPlayerOperator: NSObject {
             if player?.timeControlStatus == .waitingToPlayAtSpecifiedRate {
                 showPlayLoading()
             }
-
-            isLoadTimeControlStatus = true
         }
 
         /**< 缓冲不足播放 */
@@ -434,13 +437,13 @@ class WDPlayerOperator: NSObject {
             }
         }
     }
-    
+
     /**< 缓冲不足处理 */
-    fileprivate func playbackBufferEmpty() {
+    fileprivate func playbackBufferEmpty(afterDelay: TimeInterval = 2.5) {
         guard status == .play else { return }
         player?.pause()
         NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(againPlay), object: nil)
-        perform(#selector(againPlay), with: nil, afterDelay: 2.5)
+        perform(#selector(againPlay), with: nil, afterDelay: afterDelay)
     }
 
     /**< 重新播放 */
