@@ -74,7 +74,7 @@ class WDPlayerViewYouTbBar: UIView {
 
     fileprivate func automaticLayout() {
         let x = (isFull ? 70 : 20)
-        let y = (isFull ? -WDPlayerConf.safeBottom() - 45: -20)
+        let y = (isFull ? -WDPlayerConf.safeBottom() - 35 : -20)
         progressTimeLabel.snp.remakeConstraints { (make) in
             make.left.equalTo(x)
             make.bottom.equalTo(y)
@@ -162,8 +162,8 @@ class WDPlayerViewYouTbBar: UIView {
     
     fileprivate lazy var suspendButton: UIButton = {
         var suspendButton = UIButton()
-        suspendButton.setBackgroundImage(UIImage(named: "new_allPlay_44x44_"), for: .selected)
-        suspendButton.setBackgroundImage(UIImage(named: "new_allPause_44x44_"), for: .normal)
+        suspendButton.setImage(UIImage(named: "player_play"), for: .selected)
+        suspendButton.setImage(UIImage(named: "player_pause"), for: .normal)
         suspendButton.addTarget(self, action: #selector(suspendClick), for: .touchUpInside)
         return suspendButton
     }()

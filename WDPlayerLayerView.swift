@@ -498,6 +498,7 @@ extension WDPlayerLayerView: WPPlayerViewBarProtocol, WDPlayerTouchViewDelegate 
         isSuspended ? delegate?.suspended(layerView: self) : delegate?.play(layerView: self)
         touchView.isSuspended = isSuspended
         toolbarView.isSuspended = isSuspended
+        youTbBar?.isSuspended = isSuspended
         cancelHideToolbar()
     }
     
@@ -532,9 +533,12 @@ extension WDPlayerLayerView: WPPlayerViewBarProtocol, WDPlayerTouchViewDelegate 
         } else {
                  
             youTbBar?.alpha = 0
-            youTbBar?.youTbProgress.alpha = 0
             youTbBar?.isHidden = false
-            youTbBar?.youTbProgress.isHidden = false
+            if self.isFullScreen {
+                youTbBar?.youTbProgress.alpha = 0
+                youTbBar?.youTbProgress.isHidden = false
+            }
+            
             UIView.animate(withDuration: 0.25) {
                 self.youTbBar?.alpha = 1
                 self.youTbBar?.youTbProgress.alpha = 1
@@ -545,7 +549,7 @@ extension WDPlayerLayerView: WPPlayerViewBarProtocol, WDPlayerTouchViewDelegate 
     }
 
     /**< 隐藏导航栏 */
-    @objc fileprivate func hiddenToolBar() {
+    @objc fileprivate func hiddenToolBar(duration: TimeInterval = 0.25) {
         NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(hiddenToolBar), object: nil)
         if toolType == .tencent {
             
@@ -565,7 +569,7 @@ extension WDPlayerLayerView: WPPlayerViewBarProtocol, WDPlayerTouchViewDelegate 
                     
         } else {
 
-            UIView.animate(withDuration: 0.25) {
+            UIView.animate(withDuration: duration) {
                 
                 self.youTbBar?.alpha = 0
                 if self.isFullScreen {
