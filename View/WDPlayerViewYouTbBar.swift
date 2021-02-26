@@ -73,7 +73,7 @@ class WDPlayerViewYouTbBar: UIView {
     }
 
     fileprivate func automaticLayout() {
-        let x = (isFull ? 70 : 0)
+        let x = (isFull ? 70 : 20)
         let y = (isFull ? -WDPlayerConf.safeBottom() - 45: -20)
         progressTimeLabel.snp.remakeConstraints { (make) in
             make.left.equalTo(x)
@@ -115,6 +115,9 @@ class WDPlayerViewYouTbBar: UIView {
         self.isFull = full
         self.automaticLayout()
         self.layoutIfNeededAnimate()
+        if full {
+            
+        }
     }
 
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
