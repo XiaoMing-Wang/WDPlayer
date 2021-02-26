@@ -64,7 +64,9 @@ class WPPlayerViewToolBar: UIView {
     
     /**< 全屏布局 */
     public func fullConstraint(full: Bool = true) {
-        clipsToBounds = !full
+        isFull = full
+        automaticLayout()
+        layoutIfNeededAnimate()
     }
 
     /**< 重置 */
@@ -75,7 +77,9 @@ class WPPlayerViewToolBar: UIView {
         endLabel.text = "00:00"
     }
      
+   
     fileprivate weak var delegate: WPPlayerViewBarProtocol? = nil
+    fileprivate var isFull: Bool = false
     var suspendClosure: ((Bool) -> Void)? = nil
   
     convenience init (totalTime: Int, delegate: WPPlayerViewBarProtocol?) {
@@ -105,12 +109,14 @@ class WPPlayerViewToolBar: UIView {
     fileprivate func automaticLayout() {
         bottomShadow.snp.remakeConstraints { (make) in
             make.top.bottom.equalTo(0)
-            make.left.equalTo(-60)
-            make.right.equalTo(60)
+            make.left.equalTo(0)
+            make.right.equalTo(0)
         }
         
+        let margin = (isFull ? WDPlayerConf.playerToolMargin : 0)
         suspendButton.snp.remakeConstraints { (make) in
-            make.left.top.equalTo(0)
+            make.left.equalTo(margin)
+            make.top.equalTo(0)
             make.width.height.equalTo(WDPlayerConf.toolBarHeight)
         }
 
@@ -124,7 +130,7 @@ class WPPlayerViewToolBar: UIView {
 
         if fullButton.superview != nil {
             fullButton.snp.remakeConstraints { (make) in
-                make.right.equalTo(0)
+                make.right.equalTo(-margin)
                 make.top.equalTo(0)
                 make.width.height.equalTo(suspendButton)
             }
@@ -136,8 +142,8 @@ class WPPlayerViewToolBar: UIView {
         endLabel.snp.remakeConstraints { (make) in
             make.centerY.equalTo(suspendButton)
             make.width.equalTo(endWidth)
-            if isFull { make.right.equalTo(fullButton.snp.left).offset(-3)
-            } else { make.right.equalToSuperview().offset(-15) }
+            if isFull { make.right.equalTo(fullButton.snp.left).offset(-3) }
+            else { make.right.equalToSuperview().offset(-15) }
         }
 
         touchButton.snp.remakeConstraints { (make) in
@@ -155,6 +161,13 @@ class WPPlayerViewToolBar: UIView {
 
         progressSlider.snp.remakeConstraints { (make) in
             make.edges.equalTo(0)
+        }
+    }
+    
+    /**< 动画转换 */
+    fileprivate func layoutIfNeededAnimate(duration: TimeInterval = WDPlayerConf.playerAnimationDuration) {
+        UIView.animate(withDuration: duration) {
+            self.layoutIfNeeded()
         }
     }
     

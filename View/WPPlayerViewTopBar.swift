@@ -11,6 +11,8 @@ class WPPlayerViewTopBar: UIView {
 
     fileprivate var titles: String? = nil
     fileprivate weak var delegate: WPPlayerViewBarProtocol? = nil
+    fileprivate var isFull: Bool = false
+    
     convenience init (titles: String, delegate: WPPlayerViewBarProtocol?) {
         self.init()
         self.titles = titles
@@ -23,7 +25,9 @@ class WPPlayerViewTopBar: UIView {
 
     /**< 全屏布局 */
     public func fullConstraint(full: Bool = true) {
-        clipsToBounds = !full
+        isFull = full
+        automaticLayout()
+        layoutIfNeededAnimate()
     }
 
     /**< 初始化 */
@@ -31,23 +35,26 @@ class WPPlayerViewTopBar: UIView {
         addSubview(topShadow)
         addSubview(backButton)
         addSubview(titleLabels)
+        clipsToBounds = true
         automaticLayout()
     }
 
     /**< 布局 */
     fileprivate func automaticLayout() {
-        topShadow.snp.makeConstraints { (make) in
+        topShadow.snp.remakeConstraints { (make) in
             make.top.bottom.equalTo(0)
-            make.left.equalTo(-60)
-            make.right.equalTo(60)
+            make.left.equalTo(0)
+            make.right.equalTo(0)
         }
         
-        backButton.snp.makeConstraints { (make) in
-            make.left.top.bottom.equalTo(0)
+        let margin = (self.isFull ? WDPlayerConf.playerToolMargin : 0)
+        backButton.snp.remakeConstraints { (make) in
+            make.top.bottom.equalTo(0)
+            make.left.equalTo(margin)
             make.width.equalTo(WDPlayerConf.toolBarHeight)
         }
         
-        titleLabels.snp.makeConstraints { (make) in
+        titleLabels.snp.remakeConstraints { (make) in
             make.top.equalTo(0)
             make.left.equalTo(backButton.snp.right).offset(0)
             make.height.equalToSuperview()
@@ -57,6 +64,13 @@ class WPPlayerViewTopBar: UIView {
 
     @objc func backClick() {
         delegate?.backClick()
+    }
+    
+    /**< 动画转换 */
+    fileprivate func layoutIfNeededAnimate(duration: TimeInterval = WDPlayerConf.playerAnimationDuration) {
+        UIView.animate(withDuration: duration) {
+            self.layoutIfNeeded()
+        }
     }
 
     fileprivate lazy var backButton: UIButton = {

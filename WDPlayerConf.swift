@@ -70,7 +70,6 @@ class WDPlayerConf: NSObject {
     enum ToolType {
 
         case youtube
-
         case tencent
     }
 

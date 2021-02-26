@@ -103,7 +103,7 @@ class WDPlayerLayerView: UIView {
     public var isSuspended: Bool = false {
         didSet {
             if hasSupview(touchView) { touchView.isSuspended = isSuspended }
-            if hasSupview(youTbBar) { youTbBar.isSuspended = isSuspended }
+            /**< if hasSupview(youTbBar) { youTbBar.isSuspended = isSuspended } */
         }
     }
     
@@ -164,7 +164,7 @@ class WDPlayerLayerView: UIView {
         totalTime = duration
         if hasSupview(touchView) { touchView.totalTime = duration }
         if hasSupview(toolbarView) { toolbarView.totalTime = duration }
-        if hasSupview(youTbBar) { youTbBar.totalTime = duration }
+        if hasSupview(youTbBar) { youTbBar?.totalTime = duration }
     }
 
     /// 设置当前时间
@@ -173,14 +173,14 @@ class WDPlayerLayerView: UIView {
         currentlTime = duration
         if hasSupview(touchView) { touchView.currentlTime = duration }
         if hasSupview(toolbarView) { toolbarView.currentlTime = duration }
-        if hasSupview(youTbBar) { youTbBar.currentlTime = duration }
+        if hasSupview(youTbBar) { youTbBar?.currentlTime = duration }
     }
 
     /// 设置缓冲时间
     /// - Parameter duration: duration
     func setBufferDuration(_ duration: Int) {
         if hasSupview(toolbarView) { toolbarView.bufferTime = duration }
-        if hasSupview(youTbBar) { youTbBar.bufferTime = duration }
+        if hasSupview(youTbBar) { youTbBar?.bufferTime = duration }
     }
 
     /// 显示隐藏菊花
@@ -247,7 +247,7 @@ class WDPlayerLayerView: UIView {
     
     fileprivate func initializationInterface() {
         backgroundColor = .black
-        clipsToBounds = false
+        clipsToBounds = (toolType == .tencent)
         isDirectDisplayLoading = true
         isSupportVolumeBrightness = false
         tag = 0
@@ -257,7 +257,7 @@ class WDPlayerLayerView: UIView {
         if toolType == .tencent, isSupportToolBar {
             addSubview(topBar)
             addSubview(toolbarView)
-        } else if toolType == .youtube, isSupportToolBar {
+        } else if toolType == .youtube, isSupportToolBar, let youTbBar = youTbBar {
             insertSubview(youTbBar, aboveSubview: touchView)
             youTbBar.isHidden = true
             isShowToolBar = false
@@ -280,7 +280,7 @@ class WDPlayerLayerView: UIView {
         hasSupview(youTbBar)?.snp.remakeConstraints { (make) in
             make.edges.equalTo(0)
         }
-
+        
         hasSupview(topBar)?.snp.remakeConstraints { (make) in
             make.left.right.top.equalTo(0)
             make.height.equalTo(WDPlayerConf.toolBarHeight)
@@ -299,13 +299,10 @@ class WDPlayerLayerView: UIView {
     fileprivate func fullConstraint(full: Bool = true) {
         
         /**< 顶部导航栏 */
-        let margin = (full ? WDPlayerConf.playerToolMargin : 0)
         if hasSupview(topBar) {
             topBarDistance = WDPlayerConf.toolBarHeight + (full ? 25 : 0)
             topBar.fullConstraint(full: full)
             topBar.snp.updateConstraints { (make) in
-                make.left.equalTo(margin)
-                make.right.equalTo(-margin)
                 make.height.equalTo(topBarDistance)
             }
         }
@@ -315,16 +312,14 @@ class WDPlayerLayerView: UIView {
             bottomBarDistance = WDPlayerConf.toolBarHeight + (full ? (27) : 0)
             toolbarView.fullConstraint(full: full)
             toolbarView.snp.updateConstraints { (make) in
-                make.left.equalTo(margin)
-                make.right.equalTo(-margin)
                 make.height.equalTo(bottomBarDistance)
             }
         }
 
         if hasSupview(youTbBar) {
-            youTbBar.fullConstraint(full: full)
+            youTbBar?.fullConstraint(full: full)
         }
-                
+        
         layoutIfNeededAnimate()
     }
     
@@ -370,7 +365,8 @@ class WDPlayerLayerView: UIView {
     }()
 
     /**< 工具栏 */
-    fileprivate lazy var youTbBar: WDPlayerViewYouTbBar = {
+    fileprivate lazy var youTbBar: WDPlayerViewYouTbBar? = {
+        guard toolType == .youtube else { return nil }
         var youTbBar = WDPlayerViewYouTbBar(content: self, delegate: self)
         return youTbBar
     }()
@@ -421,7 +417,7 @@ extension WDPlayerLayerView: WPPlayerViewBarProtocol, WDPlayerTouchViewDelegate 
     
     /**< 取消消失工具栏 */
     func cancelHideToolbar() {
-        if hasSupview(topBar) || hasSupview(toolbarView) || hasSupview(youTbBar) {
+        if hasSupview(topBar) || hasSupview(toolbarView) /* || hasSupview(youTbBar)  */{
             NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(hiddenToolBar), object: nil)
             perform(#selector(hiddenToolBar), with: nil, afterDelay: 3)
         }
@@ -534,13 +530,11 @@ extension WDPlayerLayerView: WPPlayerViewBarProtocol, WDPlayerTouchViewDelegate 
                         
         } else {
                  
-            youTbBar.alpha = 0
-            youTbBar.isHidden = false
+            youTbBar?.alpha = 0
+            youTbBar?.isHidden = false
             UIView.animate(withDuration: 0.25) {
-                self.youTbBar.alpha = 1
+                self.youTbBar?.alpha = 1
                 self.touchView.suspendAlpha = 0
-            } completion: { _ in
-                
             }
         }
         
@@ -569,22 +563,25 @@ extension WDPlayerLayerView: WPPlayerViewBarProtocol, WDPlayerTouchViewDelegate 
         } else {
             
             UIView.animate(withDuration: 0.25) {
-                self.youTbBar.alpha = 0
+                self.youTbBar?.alpha = 0
                 self.touchView.suspendAlpha = 1
             } completion: { _ in
-                self.youTbBar.alpha = 1
-                self.youTbBar.isHidden = true
+                self.youTbBar?.alpha = 1
+                self.youTbBar?.isHidden = true
             }
+            
         }
         
         isShowToolBar = false
     }
            
-    fileprivate func hasSupview(_ view: UIView) -> Bool {
+    fileprivate func hasSupview(_ view: UIView?) -> Bool {
+        guard let view = view else { return false }
         return (view.superview != nil)
     }
-    
-    fileprivate func hasSupview(_ view: UIView) -> UIView? {
+
+    fileprivate func hasSupview(_ view: UIView?) -> UIView? {
+        guard let view = view else { return nil }
         if (view.superview != nil) {
             return view
         }

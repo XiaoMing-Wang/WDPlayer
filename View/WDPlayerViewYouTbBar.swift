@@ -73,11 +73,11 @@ class WDPlayerViewYouTbBar: UIView {
     }
 
     fileprivate func automaticLayout() {
-        let x = (isFull ? 50 : 0)
-        let y = (isFull ? 45 : 0)
+        let x = (isFull ? 70 : 0)
+        let y = (isFull ? -WDPlayerConf.safeBottom() - 45: -20)
         progressTimeLabel.snp.remakeConstraints { (make) in
-            make.left.equalTo(15 + x)
-            make.bottom.equalTo(-20 - y)
+            make.left.equalTo(x)
+            make.bottom.equalTo(y)
         }
 
         suspendButton.snp.remakeConstraints { (make) in
@@ -99,8 +99,8 @@ class WDPlayerViewYouTbBar: UIView {
                     make.left.right.bottom.equalTo(0)
                     make.height.equalTo(18)
                 } else {
-                    make.left.equalTo(x + 15)
-                    make.right.equalTo(-x - 15)
+                    make.left.equalTo(WDPlayerConf.playerToolMargin + 8)
+                    make.right.equalTo(-WDPlayerConf.playerToolMargin - 8)
                     make.height.equalTo(18)
                     make.bottom.equalTo(-WDPlayerConf.safeBottom() - 10)
                 }
@@ -249,7 +249,7 @@ class WDPlayerViewYouTbProgress: UIView {
     fileprivate lazy var progressSlider: UISlider = {
         var slider = UISlider()
         slider.minimumTrackTintColor = UIColor(red: 0 / 255.0, green: 191 / 255.0, blue: 255 / 255.0, alpha: 1)
-        slider.addTarget(self, action: #selector(eventValueChanged), for: .valueChanged) 
+        slider.addTarget(self, action: #selector(eventValueChanged), for: .valueChanged)
         slider.setThumbImage(UIImage(named: "sliderBlueMin"), for: .normal)
         return slider
     }()
