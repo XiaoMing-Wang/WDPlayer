@@ -168,7 +168,7 @@ class WDPlayerViewYouTbBar: UIView {
         return suspendButton
     }()
 
-    fileprivate lazy var youTbProgress: WDPlayerViewYouTbProgress = {
+    public lazy var youTbProgress: WDPlayerViewYouTbProgress = {
         var youTbProgress = WDPlayerViewYouTbProgress(delegate: self.delegate)
         return youTbProgress
     }()

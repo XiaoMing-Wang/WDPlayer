@@ -48,7 +48,7 @@ class WDPlayerTouchView: UIView {
     public var isSupportVolumeBrightness: Bool = true {
         didSet { }
     }
-
+    
     public var supportDoubleClick: Bool = WDPlayerConf.supportDoubleClick {
         didSet { removeAllGesturer() }
     }
@@ -86,10 +86,15 @@ class WDPlayerTouchView: UIView {
         didSet { }
     }
     
-    /**< 透明度 */
-    public var suspendAlpha: CGFloat = 0 {
+    /**< 删除suspendButton按钮 */
+    public var suspendIsHidden: Bool = false {
         didSet {
-            suspendButton.alpha = suspendAlpha
+            if suspendIsHidden {
+                suspendButton.removeFromSuperview()
+            } else {
+                addSubview(suspendButton)
+                automaticLayout()
+            }
         }
     }
 

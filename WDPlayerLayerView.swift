@@ -260,6 +260,7 @@ class WDPlayerLayerView: UIView {
         } else if toolType == .youtube, isSupportToolBar, let youTbBar = youTbBar {
             insertSubview(youTbBar, aboveSubview: touchView)
             youTbBar.isHidden = true
+            touchView.suspendIsHidden = true
             isShowToolBar = false
         }
         
@@ -531,10 +532,12 @@ extension WDPlayerLayerView: WPPlayerViewBarProtocol, WDPlayerTouchViewDelegate 
         } else {
                  
             youTbBar?.alpha = 0
+            youTbBar?.youTbProgress.alpha = 0
             youTbBar?.isHidden = false
+            youTbBar?.youTbProgress.isHidden = false
             UIView.animate(withDuration: 0.25) {
                 self.youTbBar?.alpha = 1
-                self.touchView.suspendAlpha = 0
+                self.youTbBar?.youTbProgress.alpha = 1
             }
         }
         
@@ -561,17 +564,25 @@ extension WDPlayerLayerView: WPPlayerViewBarProtocol, WDPlayerTouchViewDelegate 
             layoutIfNeededAnimate(duration: 0.25)
                     
         } else {
-            
+
             UIView.animate(withDuration: 0.25) {
+                
                 self.youTbBar?.alpha = 0
-                self.touchView.suspendAlpha = 1
+                if self.isFullScreen {
+                    self.youTbBar?.youTbProgress.alpha = 0
+                }
+                               
             } completion: { _ in
+                
                 self.youTbBar?.alpha = 1
                 self.youTbBar?.isHidden = true
+                if self.isFullScreen {
+                    self.youTbBar?.youTbProgress.alpha = 1
+                    self.youTbBar?.youTbProgress.isHidden = true
+                }
             }
-            
+                        
         }
-        
         isShowToolBar = false
     }
            
