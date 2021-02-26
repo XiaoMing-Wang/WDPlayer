@@ -115,9 +115,7 @@ class WDPlayerViewYouTbBar: UIView {
         self.isFull = full
         self.automaticLayout()
         self.layoutIfNeededAnimate()
-        if full {
-            
-        }
+        self.youTbProgress.fullConstraint(full: full)
     }
 
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
@@ -175,7 +173,9 @@ class WDPlayerViewYouTbBar: UIView {
 }
 
 class WDPlayerViewYouTbProgress: UIView {
+    
     fileprivate weak var delegate: WPPlayerViewBarProtocol? = nil
+    fileprivate var isFull: Bool = false
     convenience init (delegate: WPPlayerViewBarProtocol?) {
         self.init()
         self.delegate = delegate
@@ -228,12 +228,17 @@ class WDPlayerViewYouTbProgress: UIView {
             make.centerY.equalTo(progressView).offset(-1.5)
         }
     }
+    
+    public func fullConstraint(full: Bool = true) {
+        isFull = full
+        progressSlider.setThumbImage(UIImage(named: full ? "sliderBlue" : "sliderBlueMin"), for: .normal)
+    }
 
     /**< 滑动 */
     @objc func eventValueChanged() {
         if progressSlider.isTracking {
             progressSlider.setThumbImage(UIImage(named: "sliderBlue"), for: .normal)
-        } else {
+        } else if isFull == false {
             let currentlTime = Int(progressSlider.value * Float(totalTime))
             progressSlider.setThumbImage(UIImage(named: "sliderBlueMin"), for: .normal)
             delegate?.eventValueChanged(currentlTime: currentlTime)
