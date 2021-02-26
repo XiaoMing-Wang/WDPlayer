@@ -7,27 +7,6 @@
 
 import UIKit
 
-/**< 工具栏回调 */
-protocol WPPlayerViewBarDelegate: class {
-
-    /// 进度回调
-    /// - Parameter currentlTime: currentlTime
-    func eventValueChanged(currentlTime: Int)
-
-    /// 暂停回调
-    /// - Parameter isSuspended: isSuspended
-    func suspended(isSuspended: Bool)
-
-    /// 取消隐藏工具栏
-    func cancelHideToolbar()
-
-    /// 点击返回按钮
-    func backClick()
-
-    /// 点击全屏按钮
-    func fullClick(isFull: Bool)
-}
-
 class WPPlayerViewToolBar: UIView {
     
     /**< 支持横屏 */
@@ -96,10 +75,10 @@ class WPPlayerViewToolBar: UIView {
         endLabel.text = "00:00"
     }
      
-    fileprivate weak var delegate: WPPlayerViewBarDelegate? = nil
+    fileprivate weak var delegate: WPPlayerViewBarProtocol? = nil
     var suspendClosure: ((Bool) -> Void)? = nil
   
-    convenience init (totalTime: Int, delegate: WPPlayerViewBarDelegate?) {
+    convenience init (totalTime: Int, delegate: WPPlayerViewBarProtocol?) {
         self.init()
         self.delegate = delegate
         self.totalTime = totalTime

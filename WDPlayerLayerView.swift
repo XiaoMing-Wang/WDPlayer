@@ -38,8 +38,82 @@ class WDPlayerContentView: UIImageView {
     }
 }
 
-extension WDPlayerLayerView {
+class WDPlayerLayerView: UIView {
 
+    weak var delegate: WDPlayerLayerViewDelegate? = nil
+  
+    /**< 是否显示工具栏 */
+    var isSupportToolBar: Bool = WDPlayerConf.supportToolbar {
+        didSet {
+            if isSupportToolBar == false {
+                topBar.removeFromSuperview()
+                toolbarView.removeFromSuperview()
+                touchView.supportDoubleClick = false
+            } else {
+                addSubview(topBar)
+                addSubview(toolbarView)
+                topBarDistance = WDPlayerConf.toolBarHeight
+                bottomBarDistance = WDPlayerConf.toolBarHeight
+                touchView.supportDoubleClick = true
+            }
+            automaticLayout()
+        }
+    }
+        
+    /**< 是否支持亮度音量调节 (只竖屏关闭) */
+    var isSupportVolumeBrightness: Bool = false {
+        didSet {
+            touchView.isSupportVolumeBrightness = isSupportVolumeBrightness
+        }
+    }
+    
+    /**< 是否支持横屏 */
+    var isSupportFullScreen: Bool = true {
+        didSet {
+            if hasSupview(toolbarView) {
+                toolbarView.isSupportFullScreen = isSupportFullScreen
+            }
+        }
+    }
+    
+    /**< 直接显示菊花 加载前就显示出来 */
+    var isDirectDisplayLoading: Bool = false {
+        didSet { disPlayLoadingView(true)  }
+    }
+    
+    /**< 滑动手势 */
+    public var supportPanGestureRecognizer: Bool = WDPlayerConf.supportPanGestureRecognizer {
+        didSet {
+            if hasSupview(touchView) {
+                touchView.supportPanGestureRecognizer = supportPanGestureRecognizer
+            }
+        }
+    }
+
+    /**< 卡顿显示菊花 */
+    public var supportLodaing: Bool = WDPlayerConf.supportLodaing {
+        didSet {
+            if hasSupview(touchView) {
+                touchView.supportLodaing = supportLodaing
+            }
+        }
+    }
+    
+    /**< 暂停 */
+    public var isSuspended: Bool = false {
+        didSet {
+            if hasSupview(touchView) { touchView.isSuspended = isSuspended }
+            if hasSupview(youTbBar) { youTbBar.isSuspended = isSuspended }
+        }
+    }
+    
+    /**< 工具栏模式 */
+    public var toolType: WDPlayerConf.ToolType = WDPlayerConf.toolType {
+        didSet {
+            
+        }
+    }
+        
     /// 设置ContentView
     /// - Parameter contentView: contentView
     func setContentView(_ contentView: UIView?) {
@@ -59,7 +133,23 @@ extension WDPlayerLayerView {
     /// 设置拉伸类型
     /// - Parameter contentMode: contentMode
     func setContentMode(_ contentMode: WDPlayerConf.ContentMode) {
-        _setContentMode(contentMode)
+        contentModeType = contentMode
+        
+        /**< 有黑边的那种 */
+        if contentMode == .blackBorder {
+            contentsView.contentMode = .scaleAspectFit
+            contentsView.playerLayer?.videoGravity = .resizeAspect
+            
+            /**< 填充满变形 */
+        } else if contentMode == .fullScreenVariant {
+            contentsView.contentMode = .scaleToFill
+            contentsView.playerLayer?.videoGravity = .resize
+            
+            /**< 填充满不变形 */
+        } else if contentMode == .fullScreenTailor {
+            contentsView.contentMode = .scaleAspectFill
+            contentsView.playerLayer?.videoGravity = .resizeAspectFill
+        }
     }
 
     /// 返回按钮回调
@@ -74,6 +164,7 @@ extension WDPlayerLayerView {
         totalTime = duration
         if hasSupview(touchView) { touchView.totalTime = duration }
         if hasSupview(toolbarView) { toolbarView.totalTime = duration }
+        if hasSupview(youTbBar) { youTbBar.totalTime = duration }
     }
 
     /// 设置当前时间
@@ -82,13 +173,14 @@ extension WDPlayerLayerView {
         currentlTime = duration
         if hasSupview(touchView) { touchView.currentlTime = duration }
         if hasSupview(toolbarView) { toolbarView.currentlTime = duration }
-        if hasSupview(progressView) { setProgress() }
+        if hasSupview(youTbBar) { youTbBar.currentlTime = duration }
     }
 
     /// 设置缓冲时间
     /// - Parameter duration: duration
     func setBufferDuration(_ duration: Int) {
         if hasSupview(toolbarView) { toolbarView.bufferTime = duration }
+        if hasSupview(youTbBar) { youTbBar.bufferTime = duration }
     }
 
     /// 显示隐藏菊花
@@ -131,93 +223,9 @@ extension WDPlayerLayerView {
         isSetFirstImage = false
         touchView.hiddenLoadingView()
     }
-}
-
-
-class WDPlayerLayerView: UIView {
-
-    weak var delegate: WDPlayerLayerViewDelegate? = nil
-  
-    /**< 是否显示工具栏 */
-    var isSupportToolBar: Bool = WDPlayerConf.supportToolbar {
-        didSet {
-            if isSupportToolBar == false {
-                topBar.removeFromSuperview()
-                toolbarView.removeFromSuperview()
-                touchView.supportDoubleClick = false
-            } else {
-                addSubview(topBar)
-                addSubview(toolbarView)
-                topBarDistance = WDPlayerConf.toolBarHeight
-                bottomBarDistance = WDPlayerConf.toolBarHeight
-                touchView.supportDoubleClick = true
-            }
-            automaticLayout()
-        }
-    }
     
-    /**< 底部进度条 */
-    var isSupportBottomProgress: Bool = true {
-        didSet {
-            if isSupportBottomProgress == false {
-                progressView.removeFromSuperview()
-            } else {
-                addSubview(progressView)
-                automaticLayout()
-            }
-        }
-    }
     
-    /**< 是否支持亮度音量调节 (只竖屏关闭) */
-    var isSupportVolumeBrightness: Bool = true {
-        didSet {
-            touchView.isSupportVolumeBrightness = isSupportVolumeBrightness
-        }
-    }
-    
-    /**< 是否支持横屏 */
-    var isSupportFullScreen: Bool = true {
-        didSet {
-            if hasSupview(toolbarView) {
-                toolbarView.isSupportFullScreen = isSupportFullScreen
-            }
-        }
-    }
-    
-    /**< 直接显示菊花 加载前就显示出来 */
-    var isDirectDisplayLoading: Bool = false {
-        didSet {
-            disPlayLoadingView(true)
-        }
-    }
-    
-    /**< 滑动手势 */
-    public var supportPanGestureRecognizer: Bool = WDPlayerConf.supportPanGestureRecognizer {
-        didSet {
-            if hasSupview(touchView) {
-                touchView.supportPanGestureRecognizer = supportPanGestureRecognizer
-            }
-        }
-    }
-
-    /**< 卡顿显示菊花 */
-    public var supportLodaing: Bool = WDPlayerConf.supportLodaing {
-        didSet {
-            if hasSupview(touchView) {
-                touchView.supportLodaing = supportLodaing
-            }
-        }
-    }
-    
-    /**< 暂停 */
-    public var isSuspended: Bool = false {
-        didSet {
-            if hasSupview(touchView) {
-                touchView.isSuspended = isSuspended
-            }
-        }
-    }
-
+    //MARK:私有
     fileprivate(set) var isSetFirstImage: Bool = false
     fileprivate var totalTime: Int = 0
     fileprivate var currentlTime: Int = 0
@@ -239,56 +247,50 @@ class WDPlayerLayerView: UIView {
     
     fileprivate func initializationInterface() {
         backgroundColor = .black
-        clipsToBounds = true
+        clipsToBounds = false
         isDirectDisplayLoading = true
+        isSupportVolumeBrightness = false
         tag = 0
 
         addSubview(contentsView)
         addSubview(touchView)
-        if isSupportToolBar {
+        if toolType == .tencent, isSupportToolBar {
             addSubview(topBar)
             addSubview(toolbarView)
+        } else if toolType == .youtube, isSupportToolBar {
+            insertSubview(youTbBar, aboveSubview: touchView)
+            youTbBar.isHidden = true
+            isShowToolBar = false
         }
-
+        
         automaticLayout()
         cancelHideToolbar()
         setContentMode(.blackBorder)
-        if isSupportBottomProgress, isSupportToolBar {
-            progressView.isHidden = true
-        }
     }
 
     fileprivate func automaticLayout() {
         contentsView.snp.remakeConstraints { (make) in
             make.edges.equalTo(0)
         }
-
+        
         touchView.snp.remakeConstraints { (make) in
             make.edges.equalTo(0)
         }
         
-        if hasSupview(topBar) {
-            topBar.snp.remakeConstraints { (make) in
-                make.left.right.top.equalTo(0)
-                make.height.equalTo(WDPlayerConf.toolBarHeight)
-            }
+        hasSupview(youTbBar)?.snp.remakeConstraints { (make) in
+            make.edges.equalTo(0)
         }
 
-        if hasSupview(toolbarView) {
-            toolbarView.snp.remakeConstraints { (make) in
-                make.left.right.bottom.equalTo(0)
-                make.height.equalTo(WDPlayerConf.toolBarHeight)
-            }
+        hasSupview(topBar)?.snp.remakeConstraints { (make) in
+            make.left.right.top.equalTo(0)
+            make.height.equalTo(WDPlayerConf.toolBarHeight)
         }
         
-        if hasSupview(progressView) {
-            progressView.snp.remakeConstraints { (make) in
-                make.left.equalTo(0)
-                make.right.bottom.equalTo(0)
-                make.height.equalTo(2)
-            }
+        hasSupview(toolbarView)?.snp.remakeConstraints { (make) in
+            make.left.right.bottom.equalTo(0)
+            make.height.equalTo(WDPlayerConf.toolBarHeight)
         }
-                
+                                        
         topBarDistance = WDPlayerConf.toolBarHeight
         bottomBarDistance = WDPlayerConf.toolBarHeight
     }
@@ -319,11 +321,15 @@ class WDPlayerLayerView: UIView {
             }
         }
 
+        if hasSupview(youTbBar) {
+            youTbBar.fullConstraint(full: full)
+        }
+                
         layoutIfNeededAnimate()
     }
     
     /**< 动画转换 */
-    func layoutIfNeededAnimate(duration: TimeInterval = WDPlayerConf.playerAnimationDuration) {
+    fileprivate func layoutIfNeededAnimate(duration: TimeInterval = WDPlayerConf.playerAnimationDuration) {
         UIView.animate(withDuration: duration) {
             self.layoutIfNeeded()
         }
@@ -338,7 +344,7 @@ class WDPlayerLayerView: UIView {
             isLayoutSubviews = true
         }
     }
-    
+        
     /**< 播放界面 */
     fileprivate lazy var contentsView: WDPlayerContentView = {
         var contentsView = WDPlayerContentView()
@@ -362,20 +368,17 @@ class WDPlayerLayerView: UIView {
         var toolbarView = WPPlayerViewToolBar(totalTime: 0, delegate: self)
         return toolbarView
     }()
-    
-    fileprivate lazy var progressView: UIProgressView = {
-        var progressView = UIProgressView(progressViewStyle: .default)
-        progressView.progress = 0
-        progressView.progressTintColor = UIColor(red: 0 / 255.0, green: 191 / 255.0, blue: 255 / 255.0, alpha: 1)
-        progressView.trackTintColor = UIColor.white.withAlphaComponent(0.2)
-        progressView.isUserInteractionEnabled = false
-        return progressView
-    }()
 
+    /**< 工具栏 */
+    fileprivate lazy var youTbBar: WDPlayerViewYouTbBar = {
+        var youTbBar = WDPlayerViewYouTbBar(content: self, delegate: self)
+        return youTbBar
+    }()
+    
 }
 
 /**< 工具栏回调  触摸view回调 */
-extension WDPlayerLayerView: WPPlayerViewBarDelegate, WDPlayerTouchViewDelegate {
+extension WDPlayerLayerView: WPPlayerViewBarProtocol, WDPlayerTouchViewDelegate {
 
     /**< 单击 */
     func singleTap(touchView: WDPlayerTouchView) {
@@ -397,7 +400,6 @@ extension WDPlayerLayerView: WPPlayerViewBarDelegate, WDPlayerTouchViewDelegate 
     func eventValueChanged(currentlTime: Int) {
         self.currentlTime = currentlTime
         if hasSupview(touchView) { touchView.currentlTime = currentlTime }
-        if hasSupview(progressView) { setProgress() }
         delegate?.eventValueChanged(currentlTime: currentlTime)
     }
 
@@ -405,10 +407,9 @@ extension WDPlayerLayerView: WPPlayerViewBarDelegate, WDPlayerTouchViewDelegate 
     func eventValueChanged(touchView: WDPlayerTouchView, currentlTime: Int) {
         self.currentlTime = currentlTime
         if hasSupview(toolbarView) { toolbarView.currentlTime = currentlTime }
-        if hasSupview(progressView) { setProgress() }
         delegate?.eventValueChanged(currentlTime: currentlTime)
     }
-    
+           
     /**< 隐藏导航栏 */
     func hiddenBar(touchView: WDPlayerTouchView, hidden: Bool) {
         if hidden == false {
@@ -417,13 +418,18 @@ extension WDPlayerLayerView: WPPlayerViewBarDelegate, WDPlayerTouchViewDelegate 
             perform(#selector(hiddenToolBar), with: nil, afterDelay: 3)
         }
     }
-
+    
     /**< 取消消失工具栏 */
     func cancelHideToolbar() {
-        if hasSupview(topBar) || hasSupview(toolbarView) {
+        if hasSupview(topBar) || hasSupview(toolbarView) || hasSupview(youTbBar) {
             NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(hiddenToolBar), object: nil)
             perform(#selector(hiddenToolBar), with: nil, afterDelay: 3)
         }
+    }
+    
+    /**< 隐藏导航栏 */
+    func hideToolbar() {
+        hiddenToolBar()
     }
 
     /**< 暂停播放 */
@@ -441,7 +447,7 @@ extension WDPlayerLayerView: WPPlayerViewBarDelegate, WDPlayerTouchViewDelegate 
         }
     }
 
-    /// 点击全屏按钮
+    /**< 点击全屏按钮 */
     func fullClick(isFull: Bool) {
         isFullScreen = isFull
         isFullScreen ? full() : thum()
@@ -455,7 +461,6 @@ extension WDPlayerLayerView: WPPlayerViewBarDelegate, WDPlayerTouchViewDelegate 
         topBar.isFullScreen = true
         touchView.isFullScreen = true
         toolbarView.isFullScreen = true
-        progressView.isHidden = true
         originalSizePlay = frame.size
         originalCenterYPlay = WDPlayerAssistant.locationWindow_play(self).origin.y + (originalSizePlay.height / 2)
                      
@@ -488,28 +493,7 @@ extension WDPlayerLayerView: WPPlayerViewBarDelegate, WDPlayerTouchViewDelegate 
             self.tag = 0
         })
     }
-    
-    
-    fileprivate func _setContentMode(_ contentMode: WDPlayerConf.ContentMode) {
-        contentModeType = contentMode
-        
-        /**< 有黑边的那种 */
-        if contentMode == .blackBorder {
-            contentsView.contentMode = .scaleAspectFit
-            contentsView.playerLayer?.videoGravity = .resizeAspect
-            
-            /**< 填充满变形 */
-        } else if contentMode == .fullScreenVariant {
-            contentsView.contentMode = .scaleToFill
-            contentsView.playerLayer?.videoGravity = .resize
-            
-            /**< 填充满不变形 */
-        } else if contentMode == .fullScreenTailor {
-            contentsView.contentMode = .scaleAspectFill
-            contentsView.playerLayer?.videoGravity = .resizeAspectFill
-        }
-    }
-    
+
     /**< 暂停 */
     @objc fileprivate func suspend(transform: Bool = true) {
         guard isAnimation == false else { return }
@@ -532,60 +516,79 @@ extension WDPlayerLayerView: WPPlayerViewBarDelegate, WDPlayerTouchViewDelegate 
     /**< 显示导航栏 */
     @objc fileprivate func showToolBar() {
         cancelHideToolbar()
+        if toolType == .tencent {
+            
+            if hasSupview(topBar) {
+                topBar.snp.updateConstraints { (make) in
+                    make.top.equalTo(0)
+                }
+            }
 
-        if topBar.superview != nil {
-            topBar.snp.updateConstraints { (make) in
-                make.top.equalTo(0)
+            if hasSupview(toolbarView) {
+                toolbarView.snp.updateConstraints { (make) in
+                    make.bottom.equalTo(0)
+                }
+            }
+            
+            layoutIfNeededAnimate(duration: 0.25)
+                        
+        } else {
+                 
+            youTbBar.alpha = 0
+            youTbBar.isHidden = false
+            UIView.animate(withDuration: 0.25) {
+                self.youTbBar.alpha = 1
+                self.touchView.suspendAlpha = 0
+            } completion: { _ in
+                
             }
         }
-
-        if topBar.superview != nil {
-            toolbarView.snp.updateConstraints { (make) in
-                make.bottom.equalTo(0)
-            }
-        }
-
         
         isShowToolBar = true
-        layoutIfNeededAnimate(duration: 0.25)
-        if isSupportBottomProgress { progressView.isHidden = true }
     }
 
     /**< 隐藏导航栏 */
     @objc fileprivate func hiddenToolBar() {
         NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(hiddenToolBar), object: nil)
+        if toolType == .tencent {
+            
+            if hasSupview(topBar)  {
+                topBar.snp.updateConstraints { (make) in
+                    make.top.equalTo(-topBarDistance)
+                }
+            }
 
-        if topBar.superview != nil {
-            topBar.snp.updateConstraints { (make) in
-                make.top.equalTo(-topBarDistance)
+            if hasSupview(toolbarView) {
+                toolbarView.snp.updateConstraints { (make) in
+                    make.bottom.equalTo(bottomBarDistance)
+                }
+            }
+
+            layoutIfNeededAnimate(duration: 0.25)
+                    
+        } else {
+            
+            UIView.animate(withDuration: 0.25) {
+                self.youTbBar.alpha = 0
+                self.touchView.suspendAlpha = 1
+            } completion: { _ in
+                self.youTbBar.alpha = 1
+                self.youTbBar.isHidden = true
             }
         }
-
-        if toolbarView.superview != nil {
-            toolbarView.snp.updateConstraints { (make) in
-                make.bottom.equalTo(bottomBarDistance)
-            }
-        }
-
+        
         isShowToolBar = false
-        layoutIfNeededAnimate(duration: 0.25)
-        if isSupportBottomProgress, isFullScreen == false {
-            progressView.alpha = 0
-            progressView.isHidden = false
-            UIView.animate(withDuration: 0.35, delay: 0.1, options: .curveLinear) {
-                self.progressView.alpha = 1
-            } completion: { _ in }
-        }
     }
-    
-    fileprivate func setProgress() {
-        guard totalTime > 0 else { return }
-        let progress = Float(currentlTime) / Float(totalTime)
-        progressView.progress = progress
-    }
-    
+           
     fileprivate func hasSupview(_ view: UIView) -> Bool {
         return (view.superview != nil)
+    }
+    
+    fileprivate func hasSupview(_ view: UIView) -> UIView? {
+        if (view.superview != nil) {
+            return view
+        }
+        return nil
     }
         
 }

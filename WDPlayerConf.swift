@@ -24,6 +24,9 @@ class WDPlayerConf: NSObject {
 
     /**< 只回调正在播放的视频的进度  */
     static var callingPlaybackProgress: Bool = true
+    
+    /**< 工具栏风格 */
+    static var toolType: ToolType = .youtube
 
     /**< 进度调节 */
     static let playerProgressAdjustment: CGFloat = 240
@@ -62,6 +65,13 @@ class WDPlayerConf: NSObject {
 
         /**< 全屏不变形(裁剪) */
         case fullScreenTailor
+    }
+
+    enum ToolType {
+
+        case youtube
+
+        case tencent
     }
 
 }

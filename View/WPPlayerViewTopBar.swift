@@ -10,8 +10,8 @@ import UIKit
 class WPPlayerViewTopBar: UIView {
 
     fileprivate var titles: String? = nil
-    fileprivate weak var delegate: WPPlayerViewBarDelegate? = nil
-    convenience init (titles: String, delegate: WPPlayerViewBarDelegate?) {
+    fileprivate weak var delegate: WPPlayerViewBarProtocol? = nil
+    convenience init (titles: String, delegate: WPPlayerViewBarProtocol?) {
         self.init()
         self.titles = titles
         self.delegate = delegate

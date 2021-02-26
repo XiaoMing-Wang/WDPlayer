@@ -53,7 +53,7 @@ class WDPlayTouchActionProgress: UIView {
         }
     }
         
-    public lazy var progressTimeLabel: UILabel = {
+    fileprivate lazy var progressTimeLabel: UILabel = {
         var progressTimeLabel = UILabel()
         progressTimeLabel.textAlignment = .center
         progressTimeLabel.font = .systemFont(ofSize: 35)

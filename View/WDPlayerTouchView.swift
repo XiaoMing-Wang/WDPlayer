@@ -9,24 +9,6 @@ import UIKit
 import MediaPlayer
 import AVFoundation
 
-protocol WDPlayerTouchViewDelegate: class {
-
-    /**< 单击 */
-    func singleTap(touchView: WDPlayerTouchView)
-
-    /**< 双击 */
-    func doubleTap(touchView: WDPlayerTouchView)
-
-    /**< 开始 */
-    func resumePlay(touchView: WDPlayerTouchView)
-
-    /**< 进度回调 */
-    func eventValueChanged(touchView: WDPlayerTouchView, currentlTime: Int)
-    
-    /**< 隐藏导航栏 */
-    func hiddenBar(touchView: WDPlayerTouchView, hidden: Bool)
-}
-
 extension WDPlayerTouchView {
 
     /// 显示菊花
@@ -103,9 +85,15 @@ class WDPlayerTouchView: UIView {
     public var currentlTime: Int = 0 {
         didSet { }
     }
+    
+    /**< 透明度 */
+    public var suspendAlpha: CGFloat = 0 {
+        didSet {
+            suspendButton.alpha = suspendAlpha
+        }
+    }
 
     public var isFullScreen: Bool = false
-                
     fileprivate weak var delegate: WDPlayerTouchViewDelegate? = nil
     fileprivate var panDirection: PanDirection = .free
     fileprivate var singleGesture: UITapGestureRecognizer? = nil
@@ -267,7 +255,7 @@ class WDPlayerTouchView: UIView {
     /**< 暂停图标 */
     fileprivate lazy var suspendButton: UIButton = {
         var suspendButton = UIButton()
-        suspendButton.setImage(UIImage(named: "new_allPlay_44x44_"), for: .normal)
+        suspendButton.setBackgroundImage(UIImage(named: "new_allPlay_44x44_"), for: .normal)
         suspendButton.isHidden = true
         suspendButton.addTarget(self, action: #selector(suspend), for: .touchUpInside)
         return suspendButton
