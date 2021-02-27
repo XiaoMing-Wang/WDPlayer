@@ -99,7 +99,7 @@ class WDPlayerTouchView: UIView {
     }
 
     public var isFullScreen: Bool = false
-    fileprivate weak var delegate: WDPlayerTouchViewDelegate? = nil
+    fileprivate weak var delegate: WDPlayerTouchViewProtocol? = nil
     fileprivate var panDirection: PanDirection = .free
     fileprivate var singleGesture: UITapGestureRecognizer? = nil
     fileprivate var doubleGesture: UITapGestureRecognizer? = nil
@@ -111,7 +111,7 @@ class WDPlayerTouchView: UIView {
     fileprivate var slipInstantaneousEndTime: Int = 0
     fileprivate var isSliding: Bool = false
     fileprivate var isShowLoading: Bool = false
-    convenience init(delegate: WDPlayerTouchViewDelegate?) {
+    convenience init(delegate: WDPlayerTouchViewProtocol?) {
         self.init()
         self.delegate = delegate
         self.addGestures()
@@ -334,6 +334,7 @@ extension WDPlayerTouchView {
         }
 
         if (pan.state == .changed) {
+            delegate?.slidingValue(touchView: self)
                         
             /**< 进度 */
             if panDirection == .horizontal {

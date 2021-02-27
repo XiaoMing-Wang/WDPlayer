@@ -56,7 +56,7 @@ class WDPlayTouchActionProgress: UIView {
     fileprivate lazy var progressTimeLabel: UILabel = {
         var progressTimeLabel = UILabel()
         progressTimeLabel.textAlignment = .center
-        progressTimeLabel.font = .systemFont(ofSize: 35)
+        progressTimeLabel.font = .systemFont(ofSize: 28)
         progressTimeLabel.textColor = .white
         progressTimeLabel.numberOfLines = 1
         progressTimeLabel.text = " / " + WDPlayerAssistant.timeTranslate(totalTime)
@@ -64,7 +64,6 @@ class WDPlayTouchActionProgress: UIView {
     }()
     
 }
-
 
 class WDPlayVolumeBrightness: UIView {
 

@@ -33,6 +33,7 @@ class WDPlayerConf: NSObject {
 
     /**< 工具栏高度 */
     static let toolBarHeight: CGFloat = 45
+    static let toolSliderHeight: CGFloat = 20
     static let playerLayerTag: Int = 10080
 
     /**< 全屏视频比例 以手机(竖屏时)宽度为基准 */

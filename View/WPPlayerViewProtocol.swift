@@ -31,20 +31,23 @@ protocol WPPlayerViewBarProtocol: class {
     
 }
 
-protocol WDPlayerTouchViewDelegate: class {
+protocol WDPlayerTouchViewProtocol: class {
 
-    /**< 单击 */
+    ///  单击 
     func singleTap(touchView: WDPlayerTouchView)
 
-    /**< 双击 */
+    ///  双击
     func doubleTap(touchView: WDPlayerTouchView)
 
-    /**< 开始 */
+    ///  开始
     func resumePlay(touchView: WDPlayerTouchView)
 
-    /**< 进度回调 */
+    ///  滑动
+    func slidingValue(touchView: WDPlayerTouchView)
+    
+    ///  进度回调
     func eventValueChanged(touchView: WDPlayerTouchView, currentlTime: Int)
     
-    /**< 隐藏导航栏 */
+    ///  隐藏导航栏
     func hiddenBar(touchView: WDPlayerTouchView, hidden: Bool)
 }

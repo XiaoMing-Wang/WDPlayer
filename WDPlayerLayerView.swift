@@ -259,7 +259,6 @@ class WDPlayerLayerView: UIView {
             addSubview(toolbarView)
         } else if toolType == .youtube, isSupportToolBar, let youTbBar = youTbBar {
             insertSubview(youTbBar, aboveSubview: touchView)
-            youTbBar.isHidden = true
             touchView.suspendIsHidden = true
             isShowToolBar = false
         }
@@ -340,7 +339,7 @@ class WDPlayerLayerView: UIView {
             isLayoutSubviews = true
         }
     }
-        
+            
     /**< 播放界面 */
     fileprivate lazy var contentsView: WDPlayerContentView = {
         var contentsView = WDPlayerContentView()
@@ -375,7 +374,7 @@ class WDPlayerLayerView: UIView {
 }
 
 /**< 工具栏回调  触摸view回调 */
-extension WDPlayerLayerView: WPPlayerViewBarProtocol, WDPlayerTouchViewDelegate {
+extension WDPlayerLayerView: WPPlayerViewBarProtocol, WDPlayerTouchViewProtocol {
 
     /**< 单击 */
     func singleTap(touchView: WDPlayerTouchView) {
@@ -393,17 +392,23 @@ extension WDPlayerLayerView: WPPlayerViewBarProtocol, WDPlayerTouchViewDelegate 
         suspend()
     }
 
+    /**< 滑动中 */
+    func slidingValue(touchView: WDPlayerTouchView) {
+        hiddenToolBar()
+    }
+    
     /**< 滑块滑动 */
     func eventValueChanged(currentlTime: Int) {
         self.currentlTime = currentlTime
         if hasSupview(touchView) { touchView.currentlTime = currentlTime }
         delegate?.eventValueChanged(currentlTime: currentlTime)
     }
-
+    
     /**< 屏幕滑动 */
     func eventValueChanged(touchView: WDPlayerTouchView, currentlTime: Int) {
         self.currentlTime = currentlTime
         if hasSupview(toolbarView) { toolbarView.currentlTime = currentlTime }
+        if hasSupview(youTbBar) { youTbBar?.currentlTime = currentlTime }
         delegate?.eventValueChanged(currentlTime: currentlTime)
     }
            
@@ -418,7 +423,7 @@ extension WDPlayerLayerView: WPPlayerViewBarProtocol, WDPlayerTouchViewDelegate 
     
     /**< 取消消失工具栏 */
     func cancelHideToolbar() {
-        if hasSupview(topBar) || hasSupview(toolbarView) /* || hasSupview(youTbBar)  */{
+        if hasSupview(topBar) || hasSupview(toolbarView) || hasSupview(youTbBar)  {
             NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(hiddenToolBar), object: nil)
             perform(#selector(hiddenToolBar), with: nil, afterDelay: 3)
         }
@@ -515,79 +520,41 @@ extension WDPlayerLayerView: WPPlayerViewBarProtocol, WDPlayerTouchViewDelegate 
     @objc fileprivate func showToolBar() {
         cancelHideToolbar()
         if toolType == .tencent {
-            
-            if hasSupview(topBar) {
-                topBar.snp.updateConstraints { (make) in
-                    make.top.equalTo(0)
-                }
+            hasSupview(topBar)?.snp.updateConstraints { (make) in
+                make.top.equalTo(0)
             }
-
-            if hasSupview(toolbarView) {
-                toolbarView.snp.updateConstraints { (make) in
-                    make.bottom.equalTo(0)
-                }
-            }
-            
-            layoutIfNeededAnimate(duration: 0.25)
                         
+            hasSupview(toolbarView)?.snp.updateConstraints { (make) in
+                make.bottom.equalTo(0)
+            }
+                                    
         } else {
-                 
-            youTbBar?.alpha = 0
-            youTbBar?.isHidden = false
-            if self.isFullScreen {
-                youTbBar?.youTbProgress.alpha = 0
-                youTbBar?.youTbProgress.isHidden = false
-            }
-            
-            UIView.animate(withDuration: 0.25) {
-                self.youTbBar?.alpha = 1
-                self.youTbBar?.youTbProgress.alpha = 1
-            }
+            youTbBar?.show()
         }
         
         isShowToolBar = true
+        layoutIfNeededAnimate(duration: 0.25)
     }
 
     /**< 隐藏导航栏 */
-    @objc fileprivate func hiddenToolBar(duration: TimeInterval = 0.25) {
+    @objc fileprivate func hiddenToolBar() {
         NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(hiddenToolBar), object: nil)
         if toolType == .tencent {
+            hasSupview(topBar)?.snp.updateConstraints { (make) in
+                make.top.equalTo(-topBarDistance)
+            }
             
-            if hasSupview(topBar)  {
-                topBar.snp.updateConstraints { (make) in
-                    make.top.equalTo(-topBarDistance)
-                }
+            hasSupview(toolbarView)?.snp.updateConstraints { (make) in
+                make.bottom.equalTo(bottomBarDistance)
             }
-
-            if hasSupview(toolbarView) {
-                toolbarView.snp.updateConstraints { (make) in
-                    make.bottom.equalTo(bottomBarDistance)
-                }
-            }
-
-            layoutIfNeededAnimate(duration: 0.25)
-                    
+                                
         } else {
-
-            UIView.animate(withDuration: duration) {
-                
-                self.youTbBar?.alpha = 0
-                if self.isFullScreen {
-                    self.youTbBar?.youTbProgress.alpha = 0
-                }
-                               
-            } completion: { _ in
-                
-                self.youTbBar?.alpha = 1
-                self.youTbBar?.isHidden = true
-                if self.isFullScreen {
-                    self.youTbBar?.youTbProgress.alpha = 1
-                    self.youTbBar?.youTbProgress.isHidden = true
-                }
-            }
-                        
+            
+            youTbBar?.hide()
         }
+        
         isShowToolBar = false
+        layoutIfNeededAnimate(duration: 0.25)
     }
            
     fileprivate func hasSupview(_ view: UIView?) -> Bool {
