@@ -239,7 +239,6 @@ class WDPlayerLayerView: UIView {
     fileprivate var backClosure: (() -> Void)? = nil
     fileprivate weak var content: UIView? = nil
     fileprivate weak var fullViewController: WDPlayerFullViewController? = nil
-
     convenience init() {
         self.init(frame: .zero)
         initializationInterface()
@@ -323,138 +322,6 @@ class WDPlayerLayerView: UIView {
         layoutIfNeededAnimate()
     }
     
-    /**< 动画转换 */
-    fileprivate func layoutIfNeededAnimate(duration: TimeInterval = WDPlayerConf.playerAnimationDuration) {
-        UIView.animate(withDuration: duration) {
-            self.layoutIfNeeded()
-        }
-    }
-    
-    /**< 自动布局设置frame */
-    override func layoutSubviews() {
-        super.layoutSubviews()
-        if let bounds = superview?.bounds, frame.size == .zero, frame.origin == .zero, isLayoutSubviews == false {
-            frame = CGRect(x: -1, y: -1, width: 1, height: 1)
-            frame = bounds
-            isLayoutSubviews = true
-        }
-    }
-            
-    /**< 播放界面 */
-    fileprivate lazy var contentsView: WDPlayerContentView = {
-        var contentsView = WDPlayerContentView()
-        return contentsView
-    }()
-
-    /**< 顶部工具栏 */
-    fileprivate lazy var topBar: WPPlayerViewTopBar = {
-        var topBar = WPPlayerViewTopBar(titles: "", delegate: self)
-        return topBar
-    }()
-
-    /**< 中间的触摸view */
-    fileprivate lazy var touchView: WDPlayerTouchView = {
-        var touchView = WDPlayerTouchView(delegate: self)
-        return touchView
-    }()
-
-    /**< 底部工具栏 */
-    fileprivate lazy var toolbarView: WPPlayerViewToolBar = {
-        var toolbarView = WPPlayerViewToolBar(totalTime: 0, delegate: self)
-        return toolbarView
-    }()
-
-    /**< 工具栏 */
-    fileprivate lazy var youTbBar: WDPlayerViewYouTbBar? = {
-        guard toolType == .youtube else { return nil }
-        var youTbBar = WDPlayerViewYouTbBar(content: self, delegate: self)
-        return youTbBar
-    }()
-    
-}
-
-/**< 工具栏回调  触摸view回调 */
-extension WDPlayerLayerView: WPPlayerViewBarProtocol, WDPlayerTouchViewProtocol {
-
-    /**< 单击 */
-    func singleTap(touchView: WDPlayerTouchView) {
-        handleBar()
-    }
-
-    /**< 双击 */
-    func doubleTap(touchView: WDPlayerTouchView) {
-        suspend()
-    }
-
-    /**< 恢复播放 */
-    func resumePlay(touchView: WDPlayerTouchView) {
-        isSuspended = true
-        suspend()
-    }
-
-    /**< 滑动中 */
-    func slidingValue(touchView: WDPlayerTouchView) {
-        hiddenToolBar()
-    }
-    
-    /**< 滑块滑动 */
-    func eventValueChanged(currentlTime: Int) {
-        self.currentlTime = currentlTime
-        if hasSupview(touchView) { touchView.currentlTime = currentlTime }
-        delegate?.eventValueChanged(currentlTime: currentlTime)
-    }
-    
-    /**< 屏幕滑动 */
-    func eventValueChanged(touchView: WDPlayerTouchView, currentlTime: Int) {
-        self.currentlTime = currentlTime
-        if hasSupview(toolbarView) { toolbarView.currentlTime = currentlTime }
-        if hasSupview(youTbBar) { youTbBar?.currentlTime = currentlTime }
-        delegate?.eventValueChanged(currentlTime: currentlTime)
-    }
-           
-    /**< 隐藏导航栏 */
-    func hiddenBar(touchView: WDPlayerTouchView, hidden: Bool) {
-        if hidden == false {
-            NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(hiddenToolBar), object: nil)
-        } else {
-            perform(#selector(hiddenToolBar), with: nil, afterDelay: 3)
-        }
-    }
-    
-    /**< 取消消失工具栏 */
-    func cancelHideToolbar() {
-        if hasSupview(topBar) || hasSupview(toolbarView) || hasSupview(youTbBar)  {
-            NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(hiddenToolBar), object: nil)
-            perform(#selector(hiddenToolBar), with: nil, afterDelay: 3)
-        }
-    }
-    
-    /**< 隐藏导航栏 */
-    func hideToolbar() {
-        hiddenToolBar()
-    }
-
-    /**< 暂停播放 */
-    func suspended(isSuspended: Bool) {
-        self.isSuspended = isSuspended
-        self.suspend(transform: false)
-    }
-
-    /**< 返回按钮点击 */
-    func backClick() {
-        if isFullScreen {
-            thum()
-        } else {
-            backClosure?()
-        }
-    }
-
-    /**< 点击全屏按钮 */
-    func fullClick(isFull: Bool) {
-        isFullScreen = isFull
-        isFullScreen ? full() : thum()
-    }
-
     /**< 放大 */
     fileprivate func full() {
         cancelHideToolbar()
@@ -517,7 +384,7 @@ extension WDPlayerLayerView: WPPlayerViewBarProtocol, WDPlayerTouchViewProtocol 
     }
 
     /**< 显示导航栏 */
-    @objc fileprivate func showToolBar() {
+    @objc fileprivate func showToolBar(_ duration: TimeInterval = 0.25) {
         cancelHideToolbar()
         if toolType == .tencent {
             hasSupview(topBar)?.snp.updateConstraints { (make) in
@@ -529,45 +396,181 @@ extension WDPlayerLayerView: WPPlayerViewBarProtocol, WDPlayerTouchViewProtocol 
             }
                                     
         } else {
-            youTbBar?.show()
+            
+            youTbBar?.show(duration: duration)
         }
         
         isShowToolBar = true
-        layoutIfNeededAnimate(duration: 0.25)
+        layoutIfNeededAnimate(duration: duration)
     }
-
+    
     /**< 隐藏导航栏 */
-    @objc fileprivate func hiddenToolBar() {
-        NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(hiddenToolBar), object: nil)
+    fileprivate func hiddenToolBar(_ duration: TimeInterval = 0.25) {
+        NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(_hiddenToolBar), object: nil)
+               
         if toolType == .tencent {
             hasSupview(topBar)?.snp.updateConstraints { (make) in
                 make.top.equalTo(-topBarDistance)
             }
-            
+
             hasSupview(toolbarView)?.snp.updateConstraints { (make) in
                 make.bottom.equalTo(bottomBarDistance)
             }
-                                
+
         } else {
-            
-            youTbBar?.hide()
+
+            youTbBar?.hide(duration: duration)
         }
-        
+
         isShowToolBar = false
-        layoutIfNeededAnimate(duration: 0.25)
+        layoutIfNeededAnimate(duration: duration)
     }
-           
-    fileprivate func hasSupview(_ view: UIView?) -> Bool {
+
+    /**< 隐藏导航栏 */
+    @objc fileprivate func _hiddenToolBar() {
+        hiddenToolBar()
+    }
+        
+    /**< 动画转换 */
+    fileprivate func layoutIfNeededAnimate(duration: TimeInterval = WDPlayerConf.playerAnimationDuration) {
+        guard duration > 0 else {
+            self.layoutIfNeeded()
+            return
+        }
+        UIView.animate(withDuration: duration) { self.layoutIfNeeded() }
+    }
+    
+    /**< 自动布局设置frame */
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        if let bounds = superview?.bounds, frame.size == .zero, frame.origin == .zero, isLayoutSubviews == false {
+            frame = CGRect(x: -1, y: -1, width: 1, height: 1)
+            frame = bounds
+            isLayoutSubviews = true
+        }
+    }
+            
+    /**< 播放界面 */
+    fileprivate lazy var contentsView: WDPlayerContentView = {
+        var contentsView = WDPlayerContentView()
+        return contentsView
+    }()
+
+    /**< 顶部工具栏 */
+    fileprivate lazy var topBar: WPPlayerViewTopBar = {
+        var topBar = WPPlayerViewTopBar(titles: "", delegate: self)
+        return topBar
+    }()
+
+    /**< 中间的触摸view */
+    fileprivate lazy var touchView: WDPlayerTouchView = {
+        var touchView = WDPlayerTouchView(delegate: self)
+        return touchView
+    }()
+
+    /**< 底部工具栏 */
+    fileprivate lazy var toolbarView: WPPlayerViewToolBar = {
+        var toolbarView = WPPlayerViewToolBar(totalTime: 0, delegate: self)
+        return toolbarView
+    }()
+
+    /**< 工具栏 */
+    fileprivate lazy var youTbBar: WDPlayerViewYouTbBar? = {
+        guard toolType == .youtube else { return nil }
+        var youTbBar = WDPlayerViewYouTbBar(content: self, delegate: self)
+        return youTbBar
+    }()
+    
+}
+
+/**< 工具栏回调  触摸view回调 */
+extension WDPlayerLayerView: WPPlayerViewBarProtocol, WDPlayerTouchViewProtocol {
+    
+    /**< 进度 */
+    func eventValueChanged(currentlTime: Int, moving: Bool) {
+        if moving == false {
+            self.currentlTime = currentlTime
+            if hasSupview(toolbarView) { toolbarView.currentlTime = currentlTime }
+            if hasSupview(youTbBar) { youTbBar?.currentlTime = currentlTime }
+            if hasSupview(touchView) { touchView.currentlTime = currentlTime }
+            delegate?.eventValueChanged(currentlTime: currentlTime)
+        }
+    }
+    
+    /**< 暂停播放 */
+    func suspended(isSuspended: Bool) {
+        self.isSuspended = isSuspended
+        self.suspend(transform: false)
+    }
+    
+    /**< 重置消失时间 */
+    func cancelHideToolbar() {
+        if hasSupview(topBar) || hasSupview(toolbarView) || hasSupview(youTbBar) {
+            NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(_hiddenToolBar), object: nil)
+            perform(#selector(_hiddenToolBar), with: nil, afterDelay: 3)
+        }
+    }
+    
+    /**< 隐藏导航栏 */
+    func hiddenBar(hidden: Bool, isAnimation: Bool) {
+        if hasSupview(topBar) || hasSupview(toolbarView) || hasSupview(youTbBar) {
+            if hidden == false {
+                NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(_hiddenToolBar), object: nil)
+                isAnimation ? showToolBar() : showToolBar(0)
+            } else {
+                isAnimation ? hiddenToolBar() : hiddenToolBar(0)
+            }
+        }
+    }
+            
+    /**< 单击 */
+    func singleTap(touchView: WDPlayerTouchView) {
+        handleBar()
+    }
+
+    /**< 双击 */
+    func doubleTap(touchView: WDPlayerTouchView) {
+        suspend()
+    }
+   
+    /**< 返回按钮点击 */
+    func backEvent() {
+        if isFullScreen {
+            thum()
+        } else {
+            backClosure?()
+        }
+    }
+
+    /**< 点击全屏按钮 */
+    func fullEvent(isFull: Bool) {
+        isFullScreen = isFull
+        isFullScreen ? full() : thum()
+    }
+    
+    /**< 当前图片 */
+    func currentImage(currentTime: Int, results: @escaping (UIImage?) -> Void) {
+        /**< DispatchQueue.global().async { */
+        /**< let image = WDPlayerAssistant.currentImage(currentItem: self.contentsView.playerLayer?.player?.currentItem, second: Float64(currentTime)) */
+        /**< DispatchQueue.main.async { */
+        /**< results(image) */
+        /**< } */
+        /**< } */
+    }
+}
+
+fileprivate extension WDPlayerLayerView {
+    
+    func hasSupview(_ view: UIView?) -> Bool {
         guard let view = view else { return false }
         return (view.superview != nil)
     }
-
-    fileprivate func hasSupview(_ view: UIView?) -> UIView? {
+    
+    func hasSupview(_ view: UIView?) -> UIView? {
         guard let view = view else { return nil }
         if (view.superview != nil) {
             return view
         }
         return nil
     }
-        
 }

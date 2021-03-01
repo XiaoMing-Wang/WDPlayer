@@ -46,12 +46,15 @@ class WDPlayerAssistant: NSObject {
     }
     
     /**< 获取第一帧图片 */
-    class func currentImage(currentItem: AVPlayerItem?) -> UIImage? {
+    class func currentImage(currentItem: AVPlayerItem?, second: Float64 = 1) -> UIImage? {
         guard let playerItem = currentItem else { return nil }
-        guard let cgImage = try? AVAssetImageGenerator(asset: playerItem.asset).copyCGImage(at: CMTimeMakeWithSeconds(1, preferredTimescale: 1), actualTime: nil) else {
+        guard let cgImage = try? AVAssetImageGenerator(asset: playerItem.asset).copyCGImage(at: CMTimeMakeWithSeconds(second, preferredTimescale: 1), actualTime: nil) else {
             return nil
         }
-        return UIImage(cgImage: cgImage)
+
+        let image = UIImage(cgImage: cgImage)
+        return image
+        /**< return UIImage(cgImage: cgImage) */
     }
 
     /**< 截图 */
@@ -88,6 +91,29 @@ class WDPlayerAssistant: NSObject {
             imageView.kf.setImage(with: url)
         }
     }
+    
+    /**< 动画隐藏 */
+    class func animationHiden(_ view: UIView, duration: TimeInterval = 0.25) {
+        if view.isHidden == true { return }
+        UIView.animate(withDuration: duration) {
+            view.alpha = 0
+        } completion: { _ in
+            view.alpha = 1
+            view.isHidden = true
+        }
+    }
+    
+    /**< 动画显示*/
+    class func animationShow(_ view: UIView, duration: TimeInterval = 0.25) {
+        if view.isHidden == false { return }
+        view.alpha = 0
+        view.isHidden = false
+        UIView.animate(withDuration: duration) {
+            view.alpha = 1
+        } completion: { _ in
+            view.isHidden = false
+        }
+    }
 
     /**< 状态栏高度 */
     fileprivate class func barHeight_play() -> CGFloat {
@@ -97,8 +123,5 @@ class WDPlayerAssistant: NSObject {
             return UIApplication.shared.statusBarFrame.height
         }
     }
-    
-    
-    
-       
+           
 }

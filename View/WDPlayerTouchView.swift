@@ -130,7 +130,7 @@ class WDPlayerTouchView: UIView {
     }
 
     @objc func suspend() {
-        delegate?.resumePlay(touchView: self)
+        delegate?.suspended(isSuspended: true)
     }
 
     fileprivate func addSubclassView() {
@@ -250,11 +250,11 @@ class WDPlayerTouchView: UIView {
         removeGestureRecognizer(tap)
     }
 
-    fileprivate lazy var loadingView: WDPLayLoadingView = {
-        if let loadingView = WDPLayLoadingView.share {
+    fileprivate lazy var loadingView: WDPlayerLoadingView = {
+        if let loadingView = WDPlayerLoadingView.share {
             return loadingView
         }
-        return WDPLayLoadingView(frame: CGRect(x: 0, y: 0, width: 35, height: 35))
+        return WDPlayerLoadingView(frame: CGRect(x: 0, y: 0, width: 35, height: 35))
     }()
 
     /**< 暂停图标 */
@@ -303,6 +303,7 @@ extension WDPlayerTouchView {
         if (pan.state == .began) {
             hidenAllControl()
             playerCancelPrevious(selector: #selector(hidenDelay), afterDelay: -1)
+            delegate?.hiddenBar(hidden: true, isAnimation: false)
                         
             panDirection = .free
             horizontalX = location.x
@@ -317,7 +318,6 @@ extension WDPlayerTouchView {
                 actionProgress.backgroundAnimation()
                 actionProgress.isHidden = false
                 suspendButton.alpha = 0
-                delegate?.hiddenBar(touchView: self, hidden: false)
                 
             } else if let view = pan.view, location.x <= view.frame.size.width / 2.0 {
                 if isSupportVolumeBrightness == false, isFullScreen == false { return }
@@ -334,8 +334,7 @@ extension WDPlayerTouchView {
         }
 
         if (pan.state == .changed) {
-            delegate?.slidingValue(touchView: self)
-                        
+                                    
             /**< 进度 */
             if panDirection == .horizontal {
                 actionProgress.isHidden = false
@@ -422,11 +421,10 @@ extension WDPlayerTouchView {
         /**< 滑动结束 */
         if (pan.state == .ended || pan.state == .failed || pan.state == .cancelled) {
             if pan.state == .ended, panDirection == .horizontal {
-                delegate?.eventValueChanged(touchView: self, currentlTime: slipInstantaneousEndTime)
+                delegate?.eventValueChanged(currentlTime: slipInstantaneousEndTime, moving: false)
                 actionProgress.isHidden = true
                 suspendButton.alpha = 1
                 actionProgress.backgroundAnimation(false)
-                delegate?.hiddenBar(touchView: self, hidden: true)
                 currentlTime = slipInstantaneousEndTime
             }
 

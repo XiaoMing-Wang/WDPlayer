@@ -210,7 +210,7 @@ class WPPlayerViewToolBar: UIView {
         self.currentlTime = currentlTimeInt
        
         self.progressSlider.isUserInteractionEnabled = false
-        delegate?.eventValueChanged(currentlTime: currentlTimeInt)
+        delegate?.eventValueChanged(currentlTime: currentlTimeInt, moving: false)
         delegate?.cancelHideToolbar()
         restoreUserInteractionEnabled()
     }
@@ -224,7 +224,7 @@ class WPPlayerViewToolBar: UIView {
 
     @objc func full() {
         fullButton.isSelected = !fullButton.isSelected
-        delegate?.fullClick(isFull: fullButton.isSelected)
+        delegate?.fullEvent(isFull: fullButton.isSelected)
     }
 
     fileprivate lazy var bottomShadow: UIImageView = {

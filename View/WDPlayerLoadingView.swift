@@ -7,9 +7,9 @@
 
 import UIKit
 
-class WDPLayLoadingView: UIView {
+class WDPlayerLoadingView: UIView {
     
-    static var share: WDPLayLoadingView? = WDPLayLoadingView(frame: CGRect(x: 0, y: 0, width: 35, height: 35))
+    static var share: WDPlayerLoadingView? = WDPlayerLoadingView(frame: CGRect(x: 0, y: 0, width: 35, height: 35))
     fileprivate var displayLink: CADisplayLink? = nil
     fileprivate var animationLayer: CAShapeLayer? = nil
     fileprivate var startAngle: Double = 0

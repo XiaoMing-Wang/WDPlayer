@@ -63,7 +63,7 @@ class WPPlayerViewTopBar: UIView {
     }
 
     @objc func backClick() {
-        delegate?.backClick()
+        delegate?.backEvent()
     }
     
     /**< 动画转换 */
