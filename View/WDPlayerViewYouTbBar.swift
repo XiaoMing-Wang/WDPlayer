@@ -102,7 +102,7 @@ class WDPlayerViewYouTbBar: UIView {
 
     fileprivate func automaticLayout() {
         guard youTbProgress.superview != nil else { return }
-        let height = isFull ? WDPlayerConf.toolSliderHeight + WDPlayerConf.safeBottom() + 10: WDPlayerConf.toolSliderHeight
+        let height = WDPlayerConf.toolSliderHeight + (isFull ? WDPlayerSafeHeight + 10 : 0)
         youTbProgress.snp.remakeConstraints { (make) in
             if self.isFull == false {
                 make.left.right.bottom.equalTo(0)
@@ -146,7 +146,7 @@ class WDPlayerViewYouTbBar: UIView {
         }
 
         suspendButton.snp.remakeConstraints { (make) in
-            make.centerY.equalToSuperview().offset(WDPlayerConf.toolSliderHeight * 0.5)
+            make.centerY.equalToSuperview().offset(height * 0.5)
             make.centerX.equalToSuperview()
             make.width.height.equalTo(52)
         }
@@ -155,8 +155,10 @@ class WDPlayerViewYouTbBar: UIView {
     /**< 全屏布局 */
     public func fullConstraint(full: Bool = true) {
         self.isFull = full
-        self.automaticLayout()
-        self.layoutIfNeededAnimate()
+        do {
+            self.automaticLayout()
+            self.layoutIfNeededAnimate()
+        }
     }
 
     /**< 展示 */

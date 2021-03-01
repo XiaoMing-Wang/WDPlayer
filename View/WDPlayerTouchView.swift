@@ -302,9 +302,6 @@ extension WDPlayerTouchView {
         /**< 开始触摸判断方向 */
         if (pan.state == .began) {
             hidenAllControl()
-            playerCancelPrevious(selector: #selector(hidenDelay), afterDelay: -1)
-            delegate?.hiddenBar(hidden: true, isAnimation: false)
-                        
             panDirection = .free
             horizontalX = location.x
             verticalY = location.y
@@ -331,6 +328,9 @@ extension WDPlayerTouchView {
                 volume.isHidden = false
                 slipInstantaneousTime = volume.progress
             }
+            
+            delegate?.hiddenBar(hidden: true, isAnimation: false)
+            playerCancelPrevious(selector: #selector(hidenDelay), afterDelay: -1)
         }
 
         if (pan.state == .changed) {

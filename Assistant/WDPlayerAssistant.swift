@@ -54,7 +54,6 @@ class WDPlayerAssistant: NSObject {
 
         let image = UIImage(cgImage: cgImage)
         return image
-        /**< return UIImage(cgImage: cgImage) */
     }
 
     /**< 截图 */

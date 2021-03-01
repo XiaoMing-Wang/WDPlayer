@@ -236,6 +236,8 @@ class WDPlayerLayerView: UIView {
     fileprivate var isFullScreen: Bool = false
     fileprivate var isLayoutSubviews: Bool = false
     fileprivate var contentModeType: WDPlayerConf.ContentMode? = nil
+    fileprivate var assetImageGenerator: AVAssetImageGenerator? = nil
+    fileprivate var assetImageTime: Int = -1
     fileprivate var backClosure: (() -> Void)? = nil
     fileprivate weak var content: UIView? = nil
     fileprivate weak var fullViewController: WDPlayerFullViewController? = nil
@@ -401,6 +403,7 @@ class WDPlayerLayerView: UIView {
         }
         
         isShowToolBar = true
+        touchView.hidenAllControl()
         layoutIfNeededAnimate(duration: duration)
     }
     
@@ -550,12 +553,7 @@ extension WDPlayerLayerView: WPPlayerViewBarProtocol, WDPlayerTouchViewProtocol 
     
     /**< 当前图片 */
     func currentImage(currentTime: Int, results: @escaping (UIImage?) -> Void) {
-        /**< DispatchQueue.global().async { */
-        /**< let image = WDPlayerAssistant.currentImage(currentItem: self.contentsView.playerLayer?.player?.currentItem, second: Float64(currentTime)) */
-        /**< DispatchQueue.main.async { */
-        /**< results(image) */
-        /**< } */
-        /**< } */
+        currentImage(second: currentTime, results: results)
     }
 }
 
@@ -572,5 +570,28 @@ fileprivate extension WDPlayerLayerView {
             return view
         }
         return nil
+    }
+    
+    /**< 获取某一帧率 */
+    func currentImage(second: Int = 1, results: @escaping (UIImage?) -> Void) {
+        if assetImageTime == second { return }
+        guard let asset = contentsView.playerLayer?.player?.currentItem?.asset else { return }
+        if assetImageGenerator == nil {
+            assetImageGenerator = AVAssetImageGenerator(asset: asset)
+            assetImageGenerator?.appliesPreferredTrackTransform = true
+            assetImageGenerator?.maximumSize = CGSize(width: WDPlayerConf.thumbnailWidth, height: WDPlayerConf.thumbnailWidth * 9.0 / 16.0)
+            assetImageGenerator?.requestedTimeToleranceBefore = .zero
+            assetImageGenerator?.requestedTimeToleranceAfter = .zero
+        }
+
+        let cmTime = CMTimeMakeWithSeconds(Float64(second), preferredTimescale: 1)
+        let forTimes: [NSValue] = [NSValue(time: cmTime)]
+        assetImageTime = second
+        assetImageGenerator?.generateCGImagesAsynchronously(forTimes: forTimes, completionHandler: { (timer, cgImage, _, result, error) in
+            if let cgImage = cgImage, error == nil {
+                DispatchQueue.main.async { results(UIImage(cgImage: cgImage)) }
+            }
+        })
+
     }
 }

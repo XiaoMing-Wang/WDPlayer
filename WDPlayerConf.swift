@@ -7,6 +7,8 @@
 
 import UIKit
 
+let WDPlayerSafeHeight: CGFloat = WDPlayerConf.safeBottom()
+
 /**< 初始值不设置按这里算 设置了按设置算 */
 class WDPlayerConf: NSObject {
 
@@ -26,7 +28,7 @@ class WDPlayerConf: NSObject {
     static var callingPlaybackProgress: Bool = true
     
     /**< 工具栏风格 */
-    static var toolType: ToolType = .youtube
+    static var toolType: ToolType = .tencent
 
     /**< 进度调节 */
     static let playerProgressAdjustment: CGFloat = 240
@@ -55,9 +57,9 @@ class WDPlayerConf: NSObject {
     /**< 底部安全距离 */
     static func safeBottom() -> CGFloat {
         if #available(iOS 11, *) {
-            return UIApplication.shared.delegate?.window??.safeAreaInsets.bottom ?? 0
+            return UIApplication.shared.delegate?.window??.safeAreaInsets.bottom ?? 0 + 60
         } else {
-            return 0
+            return 0 + 20
         }
     }
 
@@ -76,6 +78,7 @@ class WDPlayerConf: NSObject {
     enum ToolType {
 
         case youtube
+                
         case tencent
     }
 
