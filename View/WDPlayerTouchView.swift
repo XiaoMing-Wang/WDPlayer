@@ -383,27 +383,29 @@ extension WDPlayerTouchView {
                 
                 /**< 快进 */
                 if displacement > 0 {
-                    
+
                     slipInstantaneousEndTime = min(slipInstantaneousTime + amplitude, totalTime)
+                    progressTimeLabel.text = WDPlayerAssistant.timeTranslate(slipInstantaneousEndTime) + " / " + WDPlayerAssistant.timeTranslate(totalTime)
                     thumView.currentlTime = slipInstantaneousEndTime
-                    progressTimeLabel.text = " / +\(String(format: "%02zd秒", amplitude))"
                     delegate?.currentImage(currentTime: slipInstantaneousEndTime, results: { self.thumView.currentlImage = $0 })
+                                       
                     if slipInstantaneousEndTime >= totalTime {
                         slipInstantaneousTime = totalTime
                         horizontalX = location.x
                     }
 
+
                 } else {
 
                     slipInstantaneousEndTime = max(slipInstantaneousTime - amplitude, 0)
+                    progressTimeLabel.text = WDPlayerAssistant.timeTranslate(slipInstantaneousEndTime) + " / " + WDPlayerAssistant.timeTranslate(totalTime)
                     thumView.currentlTime = slipInstantaneousEndTime
-                    progressTimeLabel.text =  " / -\(String(format: "%02zd秒", amplitude))"
                     delegate?.currentImage(currentTime: slipInstantaneousEndTime, results: { self.thumView.currentlImage = $0 })
+                                        
                     if slipInstantaneousEndTime <= 0 {
                         slipInstantaneousTime = 0
                         horizontalX = location.x
                     }
-                    
                 }
             }
             
