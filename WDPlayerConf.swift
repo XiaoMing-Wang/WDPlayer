@@ -28,7 +28,7 @@ class WDPlayerConf: NSObject {
     static var callingPlaybackProgress: Bool = true
     
     /**< 工具栏风格 */
-    static var toolType: ToolType = .tencent
+    static var toolType: ToolType = .youtube
 
     /**< 进度调节 */
     static let playerProgressAdjustment: CGFloat = 240
@@ -41,7 +41,7 @@ class WDPlayerConf: NSObject {
     static let playerLayerTag: Int = 10080
     
     /**< 缩略图宽度 */
-    static let thumbnailWidth: CGFloat = 140
+    static let thumbnailWidth: CGFloat = 150
 
     /**< 全屏视频比例 以手机(竖屏时)宽度为基准 */
     static let playerFullProportion: CGFloat = (16.0 / 9)
@@ -57,9 +57,9 @@ class WDPlayerConf: NSObject {
     /**< 底部安全距离 */
     static func safeBottom() -> CGFloat {
         if #available(iOS 11, *) {
-            return UIApplication.shared.delegate?.window??.safeAreaInsets.bottom ?? 0 + 60
+            return UIApplication.shared.delegate?.window??.safeAreaInsets.bottom ?? 0
         } else {
-            return 0 + 20
+            return 0
         }
     }
 

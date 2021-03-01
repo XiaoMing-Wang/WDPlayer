@@ -533,7 +533,7 @@ class WDPlayerOperator: NSObject {
     @objc fileprivate func playerItemDidReachEnd(notification: Notification) {
         if let item = notification.object as? AVPlayerItem, item == playerItem {
             backBagin(mandatory: true)
-            delegate?.playEnd?(play: self)
+            delegate?.playEnd?(play: self) 
             
             if isReplay, status == .play {
                 play()

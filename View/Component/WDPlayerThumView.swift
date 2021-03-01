@@ -21,8 +21,8 @@ class WDPlayerThumView: UIView {
         }
     }
     
-    fileprivate weak var delegate: WPPlayerViewBarProtocol? = nil
-    convenience init (delegate: WPPlayerViewBarProtocol?) {
+    fileprivate weak var delegate: WPPlayerViewBaseProtocol? = nil
+    convenience init (delegate: WPPlayerViewBaseProtocol?) {
         self.init()
         self.initialize()
     }
@@ -55,7 +55,7 @@ class WDPlayerThumView: UIView {
         return thumbnailImageView
     }()
 
-    fileprivate lazy var progressTimeLabel: UILabel = {
+    public lazy var progressTimeLabel: UILabel = {
         var progressTimeLabel = UILabel()
         progressTimeLabel.textAlignment = .center
         progressTimeLabel.font = .systemFont(ofSize: 12)

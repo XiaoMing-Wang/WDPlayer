@@ -22,6 +22,9 @@ protocol WPPlayerViewBaseProtocol:class {
 
     ///  重置导航栏隐藏时间
     func cancelHideToolbar()
+    
+    ///获取当前截图
+    func currentImage(currentTime: Int, results: @escaping (UIImage?) -> Void)
 }
 
 protocol WPPlayerViewBarProtocol: WPPlayerViewBaseProtocol {
@@ -32,8 +35,6 @@ protocol WPPlayerViewBarProtocol: WPPlayerViewBaseProtocol {
     /// 点击全屏按钮
     func fullEvent(isFull: Bool)
 
-    ///获取当前截图
-    func currentImage(currentTime: Int, results: @escaping (UIImage?) -> Void)
 }
 
 protocol WDPlayerTouchViewProtocol: WPPlayerViewBaseProtocol {

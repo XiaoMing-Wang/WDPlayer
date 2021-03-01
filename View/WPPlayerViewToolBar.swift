@@ -32,10 +32,8 @@ class WPPlayerViewToolBar: UIView {
     /**< 当前时间 */
     public var currentlTime: Int = 0 {
         didSet {
-            if progressSlider.isTracking == false {
-                startLabel.text = WDPlayerAssistant.timeTranslate(currentlTime)
-                setProgress()
-            }
+            startLabel.text = WDPlayerAssistant.timeTranslate(currentlTime)
+            setProgress()
         }
     }
     
@@ -135,10 +133,10 @@ class WPPlayerViewToolBar: UIView {
                 make.width.height.equalTo(suspendButton)
             }
         }
-        
+
         let endWidth = endLabel.frame.size.width
         let isFull = (fullButton.superview != nil)
-        endLabel.text = "00:00"
+        endLabel.text = WDPlayerAssistant.timeTranslate(totalTime)
         endLabel.snp.remakeConstraints { (make) in
             make.centerY.equalTo(suspendButton)
             make.width.equalTo(endWidth)
@@ -175,6 +173,7 @@ class WPPlayerViewToolBar: UIView {
     fileprivate func setProgress() {
         guard totalTime > 0 else { return }
         let progress = Float(currentlTime) / Float(totalTime)
+        if progressSlider.isTracking { return }
         progressSlider.setValue(progress, animated: true)
     }
 
@@ -200,6 +199,11 @@ class WPPlayerViewToolBar: UIView {
         delegate?.cancelHideToolbar()
         if progressSlider.isTracking == false {
             adjustProgressSlider()
+        } else {
+            let value = progressSlider.value
+            let currentlTime = ceil(value * Float(totalTime))
+            let currentlTimeInt = Int(currentlTime)
+            delegate?.eventValueChanged(currentlTime: currentlTimeInt, moving: true)
         }
     }
 
@@ -208,7 +212,6 @@ class WPPlayerViewToolBar: UIView {
         let currentlTime = ceil(value * Float(totalTime))
         let currentlTimeInt = Int(currentlTime)
         self.currentlTime = currentlTimeInt
-       
         self.progressSlider.isUserInteractionEnabled = false
         delegate?.eventValueChanged(currentlTime: currentlTimeInt, moving: false)
         delegate?.cancelHideToolbar()

@@ -7,64 +7,6 @@
 
 import UIKit
 
-class WDPlayTouchActionProgress: UIView {
-
-    /**< 总时间 */
-    public var totalTime: Int = 0 {
-        didSet {
-            progressTimeLabel.text = WDPlayerAssistant.timeTranslate(currentlTime) + " / " + WDPlayerAssistant.timeTranslate(totalTime)
-        }
-    }
-
-    /**< 当前时间 */
-    public var currentlTime: Int = 0 {
-        didSet {
-            progressTimeLabel.text = WDPlayerAssistant.timeTranslate(currentlTime) + " / " + WDPlayerAssistant.timeTranslate(totalTime)
-        }
-    }
-
-    /**< 背景动画 */
-    func backgroundAnimation(_ isShow: Bool = true) {
-        if isShow == false {
-            backgroundColor = UIColor.black.withAlphaComponent(0.0)
-            return
-        }
-        
-        UIView.animate(withDuration: 0.125) {
-            self.backgroundColor = UIColor.black.withAlphaComponent(0.30)
-        }
-    }
-         
-    convenience init(totalTime: Int) {
-        self.init()
-        self.totalTime = totalTime
-        self.initializationInterface()
-    }
-        
-    fileprivate func initializationInterface() {
-        isUserInteractionEnabled = false
-        addSubview(progressTimeLabel)
-        automaticLayout()
-    }
-    
-    fileprivate func automaticLayout() {
-        progressTimeLabel.snp.makeConstraints { (make) in
-            make.width.centerY.equalToSuperview()
-        }
-    }
-        
-    fileprivate lazy var progressTimeLabel: UILabel = {
-        var progressTimeLabel = UILabel()
-        progressTimeLabel.textAlignment = .center
-        progressTimeLabel.font = .systemFont(ofSize: 28)
-        progressTimeLabel.textColor = .white
-        progressTimeLabel.numberOfLines = 1
-        progressTimeLabel.text = " / " + WDPlayerAssistant.timeTranslate(totalTime)
-        return progressTimeLabel
-    }()
-    
-}
-
 class WDPlayVolumeBrightness: UIView {
 
     enum VolumeBrightnessType {

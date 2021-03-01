@@ -18,7 +18,7 @@ protocol WDPlayerLayerViewDelegate: class {
     func play(layerView: WDPlayerLayerView)
 
     /**< 进度 */
-    func eventValueChanged(currentlTime: Int)
+    func eventValueChanged(currentlTime: Int) 
 }
 
 /**< 播放界面 */
@@ -103,14 +103,14 @@ class WDPlayerLayerView: UIView {
     public var isSuspended: Bool = false {
         didSet {
             if hasSupview(touchView) { touchView.isSuspended = isSuspended }
-            /**< if hasSupview(youTbBar) { youTbBar.isSuspended = isSuspended } */
+            if hasSupview(youTbBar) { youTbBar?.isSuspended = isSuspended }
         }
     }
     
     /**< 工具栏模式 */
     public var toolType: WDPlayerConf.ToolType = WDPlayerConf.toolType {
         didSet {
-            
+            if hasSupview(touchView) { touchView.toolType = toolType }
         }
     }
         
@@ -495,8 +495,13 @@ extension WDPlayerLayerView: WPPlayerViewBarProtocol, WDPlayerTouchViewProtocol 
             self.currentlTime = currentlTime
             if hasSupview(toolbarView) { toolbarView.currentlTime = currentlTime }
             if hasSupview(youTbBar) { youTbBar?.currentlTime = currentlTime }
-            if hasSupview(touchView) { touchView.currentlTime = currentlTime }
+            if hasSupview(touchView) {
+                touchView.currentlTime = currentlTime
+                touchView.hidenThumView()
+            }
             delegate?.eventValueChanged(currentlTime: currentlTime)
+        } else {
+            if hasSupview(touchView) { touchView.showThumView(currentlTime: currentlTime) }
         }
     }
     
