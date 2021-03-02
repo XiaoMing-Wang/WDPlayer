@@ -17,6 +17,7 @@ class WPPlayerViewTopBar: UIView {
         self.init()
         self.titles = titles
         self.delegate = delegate
+        
         self.initializationInterface()
     }
 

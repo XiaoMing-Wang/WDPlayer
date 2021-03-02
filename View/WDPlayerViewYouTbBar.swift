@@ -98,6 +98,7 @@ class WDPlayerViewYouTbBar: UIView {
         animationView.addSubview(suspendButton)
         animationView.addSubview(fullButton)
         automaticLayout()
+        listenNotification()
     }
 
     fileprivate func automaticLayout() {
@@ -213,21 +214,18 @@ class WDPlayerViewYouTbBar: UIView {
                 make.centerX.equalTo(centerX)
             }
 
-            if isShowToolBar {
-                WDPlayerAssistant.animationHiden(suspendButton)
-                centerX <= minCententX ? WDPlayerAssistant.animationHiden(progressTimeLabel) : WDPlayerAssistant.animationShow(progressTimeLabel)
-            }
-
+            suspendButton.alpha = 0
+            progressTimeLabel.alpha = (centerX >= minCententX) ? 1 : 0
+            fullButton.alpha = (centerX >= maxCententX) ? 0 : 1
+            
         } else {
 
             self.currentlTime = currentlTime
-            thumView.isHidden = true
             delegate?.eventValueChanged(currentlTime: currentlTime, moving: false)
-            if isShowToolBar {
-                WDPlayerAssistant.animationShow(suspendButton)
-                WDPlayerAssistant.animationShow(progressTimeLabel)
-                WDPlayerAssistant.animationShow(fullButton)
-            }
+            thumView.isHidden = true
+            fullButton.alpha = 1
+            suspendButton.alpha = 1
+            progressTimeLabel.alpha = 1
         }
     }
             
@@ -238,11 +236,13 @@ class WDPlayerViewYouTbBar: UIView {
         }
     }
     
+    /**< 全屏 */
     @objc func full() {
         fullButton.isSelected = !fullButton.isSelected
         delegate?.fullEvent(isFull: fullButton.isSelected)
     }
         
+    /**< 暂停 */
     @objc func suspendClick() {
         suspendButton.isSelected = !suspendButton.isSelected
         isSuspended = suspendButton.isSelected
@@ -265,12 +265,25 @@ class WDPlayerViewYouTbBar: UIView {
         return nil
     }
     
+    /**< 获取宽度 */
     override func layoutSubviews() {
         super.layoutSubviews()
         progressWidth = youTbProgress.frame.size.width
         progressLeft = youTbProgress.frame.origin.x
-        minCententX = progressTimeLabel.frame.size.width + progressTimeLabel.frame.origin.x + 25
-        maxCententX = progressWidth - fullButton.frame.origin.x - 20
+        minCententX = progressTimeLabel.frame.size.width + progressTimeLabel.frame.origin.x + WDPlayerConf.thumbnailWidth * 0.5
+        maxCententX = progressWidth - (progressWidth - fullButton.frame.origin.x) - WDPlayerConf.thumbnailWidth * 0.5
+    }
+        
+    /**< 通知 */
+    fileprivate func listenNotification() {
+        NotificationCenter.default.addObserver(self, selector: #selector(resignActive), name: UIApplication.willResignActiveNotification, object: nil)
+    }
+        
+    /**< 隐藏 */
+    @objc func resignActive() {
+        thumView.isHidden = true
+        suspendButton.alpha = 1
+        progressTimeLabel.alpha = 1
     }
     
     fileprivate lazy var progressTimeLabel: UILabel = {
@@ -358,7 +371,8 @@ class WDPlayerViewYouTbProgress: UIView {
     fileprivate var bufferTime: Int = 0 {
         didSet {
             guard totalTime > 0 else { return }
-            let ratio = Float(bufferTime) / Float(totalTime)
+            var ratio = Float(bufferTime) / Float(totalTime)
+            if ratio >= 0.98 { ratio = 1 }
             progressView.setProgress(ratio, animated: true)
         }
     }
@@ -385,8 +399,8 @@ class WDPlayerViewYouTbProgress: UIView {
         }
 
         progressSlider.snp.remakeConstraints { (make) in
-            make.left.equalTo(-1)
-            make.right.equalTo(1)
+            make.left.equalTo(0)
+            make.right.equalTo(0)
             make.height.equalTo(WDPlayerConf.toolSliderHeight)
             make.centerY.equalTo(progressView).offset(-1.5)
         }

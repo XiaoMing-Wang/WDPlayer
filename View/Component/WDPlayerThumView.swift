@@ -18,6 +18,8 @@ class WDPlayerThumView: UIView {
     public var currentlImage: UIImage? = nil {
         didSet {
             thumbnailImageView.image = currentlImage
+            indicatorView.isHidden = true
+            indicatorView.stopAnimating()
         }
     }
     
@@ -28,6 +30,7 @@ class WDPlayerThumView: UIView {
     }
     
     func initialize() {
+        thumbnailImageView.addSubview(indicatorView)
         addSubview(thumbnailImageView)
         addSubview(progressTimeLabel)
         automaticLayout()
@@ -45,16 +48,28 @@ class WDPlayerThumView: UIView {
             make.centerX.equalToSuperview()
             make.bottom.equalToSuperview()
         }
+        
+        indicatorView.snp.remakeConstraints { (make) in
+            make.width.height.equalTo(20)
+            make.center.equalToSuperview()
+        }
     }
 
     fileprivate lazy var thumbnailImageView: UIImageView = {
         var thumbnailImageView = UIImageView()
         thumbnailImageView.layer.cornerRadius = 4
         thumbnailImageView.layer.masksToBounds = true
-        thumbnailImageView.backgroundColor = .white
+        thumbnailImageView.backgroundColor = UIColor.gray.withAlphaComponent(0.5)
         return thumbnailImageView
     }()
 
+    public lazy var indicatorView: UIActivityIndicatorView = {
+        var indicatorView = UIActivityIndicatorView(style: .white)
+        indicatorView.startAnimating()
+        /**< indicatorView.isHidden = true */
+        return indicatorView
+    }()
+    
     public lazy var progressTimeLabel: UILabel = {
         var progressTimeLabel = UILabel()
         progressTimeLabel.textAlignment = .center

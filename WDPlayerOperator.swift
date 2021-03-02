@@ -557,6 +557,7 @@ class WDPlayerOperator: NSObject {
         if status == .background || status == .play {
             play()
             playView.isSuspended = false
+            showPlayLoading(!isFluentPlaying)
         }
     }
 

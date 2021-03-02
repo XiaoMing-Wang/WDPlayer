@@ -104,7 +104,7 @@ class WDPlayerAssistant: NSObject {
     
     /**< 动画显示*/
     class func animationShow(_ view: UIView, duration: TimeInterval = 0.25) {
-        if view.isHidden == false { return }
+        if view.isHidden == false, view.alpha == 1 { return }
         view.alpha = 0
         view.isHidden = false
         UIView.animate(withDuration: duration) {

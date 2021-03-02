@@ -338,6 +338,7 @@ extension WDPlayerTouchView {
         
         /**< 开始触摸判断方向 */
         if (pan.state == .began) {
+            
             hidenAllControl()
             panDirection = .free
             horizontalX = location.x
@@ -350,6 +351,7 @@ extension WDPlayerTouchView {
                 slipInstantaneousTime = currentlTime
                 hasSupview(thumView)?.isHidden = false
                 hasSupview(progressTimeLabel)?.isHidden = false
+                loadingView.alpha = 0
                 suspendButton.alpha = 0
                 
             } else if let view = pan.view, location.x <= view.frame.size.width / 2.0 {
@@ -472,6 +474,8 @@ extension WDPlayerTouchView {
                 delegate?.eventValueChanged(currentlTime: slipInstantaneousEndTime, moving: false)
                 thumView.isHidden = true
                 progressTimeLabel.isHidden = true
+                
+                loadingView.alpha = 1
                 suspendButton.alpha = 1
                 currentlTime = slipInstantaneousEndTime
             }
@@ -502,7 +506,7 @@ extension WDPlayerTouchView {
         remoGestureRecognizer(panGestureRecognizer)
         addGestures()
     }
-
+    
     fileprivate func isThumView() -> Bool {
         return (toolType == .tencent)
     }
