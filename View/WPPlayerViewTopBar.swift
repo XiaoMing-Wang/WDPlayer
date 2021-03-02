@@ -12,12 +12,11 @@ class WPPlayerViewTopBar: UIView {
     fileprivate var titles: String? = nil
     fileprivate weak var delegate: WPPlayerViewBarProtocol? = nil
     fileprivate var isFull: Bool = false
-    
+
     convenience init (titles: String, delegate: WPPlayerViewBarProtocol?) {
         self.init()
         self.titles = titles
         self.delegate = delegate
-        
         self.initializationInterface()
     }
 

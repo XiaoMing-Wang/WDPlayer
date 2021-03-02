@@ -41,7 +41,8 @@ class WPPlayerViewToolBar: UIView {
     public var bufferTime: Int = 0 {
         didSet {
             guard totalTime > 0 else { return }
-            let ratio = Float(bufferTime) / Float(totalTime)
+            var ratio = Float(bufferTime) / Float(totalTime)
+            if ratio >= 0.99 { ratio = 1 }
             progressView.setProgress(ratio, animated: true)
         }
     }
@@ -290,8 +291,8 @@ class WPPlayerViewToolBar: UIView {
         return progressView
     }()
 
-    fileprivate lazy var progressSlider: UISlider = {
-        var slider = UISlider()
+    fileprivate lazy var progressSlider: WDPlayerViewSlider = {
+        var slider = WDPlayerViewSlider()
         slider.minimumTrackTintColor = .white
         slider.addTarget(self, action: #selector(eventValueChanged), for: .valueChanged)
         slider.setThumbImage(UIImage(named: "sliderBtn"), for: .normal)
@@ -303,7 +304,7 @@ fileprivate class WDPLayTouchButton: UIButton {
     fileprivate var clickProportions: Float = 0
     override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
         let view = super.hitTest(point, with: event)
-        if let slider = view as? UISlider {
+        if let slider = view as? WDPlayerViewSlider {
             let center = convert(point, to: view)
             clickProportions = Float(center.x) / Float(slider.frame.size.width)
             let distance = abs(clickProportions - slider.value)

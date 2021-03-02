@@ -66,7 +66,6 @@ class WDPlayerThumView: UIView {
     public lazy var indicatorView: UIActivityIndicatorView = {
         var indicatorView = UIActivityIndicatorView(style: .white)
         indicatorView.startAnimating()
-        /**< indicatorView.isHidden = true */
         return indicatorView
     }()
     

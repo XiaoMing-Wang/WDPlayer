@@ -9,29 +9,6 @@ import UIKit
 import MediaPlayer
 import AVFoundation
 
-extension WDPlayerTouchView {
-
-    /// 显示菊花
-    func showLoadingView(afterDelay: TimeInterval = 0.5) {
-        isShowLoading = true
-        NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(_showLoadingView), object: nil)
-        perform(#selector(_showLoadingView), with: nil, afterDelay: afterDelay)
-    }
-
-    /// 隐藏菊花
-    func hiddenLoadingView() {
-        guard supportLodaing else { return }
-        NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(_showLoadingView), object: nil)
-        loadingView.hide()
-        isShowLoading = false
-    }
-
-    @objc fileprivate func _showLoadingView() {
-        guard supportLodaing, isSuspended == false else { return }
-        loadingView.start()
-    }
-}
-
 class WDPlayerTouchView: UIView {
 
     enum PanDirection {
@@ -112,6 +89,26 @@ class WDPlayerTouchView: UIView {
     func hidenThumView() {
         thumView.isHidden = true
     }
+    
+    /// 显示菊花
+    func showLoadingView(afterDelay: TimeInterval = 0.5) {
+        isShowLoading = true
+        NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(_showLoadingView), object: nil)
+        perform(#selector(_showLoadingView), with: nil, afterDelay: afterDelay)
+    }
+
+    /// 隐藏菊花
+    func hiddenLoadingView() {
+        guard supportLodaing else { return }
+        NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(_showLoadingView), object: nil)
+        loadingView.hide()
+        isShowLoading = false
+    }
+
+    @objc fileprivate func _showLoadingView() {
+        guard supportLodaing, isSuspended == false else { return }
+        loadingView.start()
+    }
 
     public var isFullScreen: Bool = false
     fileprivate weak var delegate: WDPlayerTouchViewProtocol? = nil
@@ -134,17 +131,17 @@ class WDPlayerTouchView: UIView {
         self.volumeControl()
     }
 
-    @objc func singleTap() {
+    @objc fileprivate func singleTap() {
         delegate?.singleTap(touchView: self)
     }
 
-    @objc func doubleTap() {
+    @objc fileprivate func doubleTap() {
         suspendButton.alpha = 1
         hidenAllControl()
         delegate?.doubleTap(touchView: self)
     }
 
-    @objc func suspend() {
+    @objc fileprivate func suspend() {
         isSuspended = false
         delegate?.suspended(isSuspended: isSuspended)
         delegate?.hiddenBar(hidden: true, isAnimation: true)
@@ -266,12 +263,12 @@ class WDPlayerTouchView: UIView {
         }
     }
 
-    @objc func resignActive() {
+    @objc fileprivate func resignActive() {
         guard supportPanGestureRecognizer else { return }
         brightness.progress = Int(UIScreen.main.brightness * 100)
     }
 
-    func remoGestureRecognizer(_ tap: UIGestureRecognizer?) {
+    fileprivate func remoGestureRecognizer(_ tap: UIGestureRecognizer?) {
         guard let tap = tap else { return }
         removeGestureRecognizer(tap)
     }
