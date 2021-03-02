@@ -59,7 +59,7 @@ class WDPlayerThumView: UIView {
         var thumbnailImageView = UIImageView()
         thumbnailImageView.layer.cornerRadius = 4
         thumbnailImageView.layer.masksToBounds = true
-        thumbnailImageView.backgroundColor = UIColor.gray.withAlphaComponent(0.5)
+        thumbnailImageView.backgroundColor = UIColor.gray.withAlphaComponent(1)
         return thumbnailImageView
     }()
 

@@ -500,8 +500,10 @@ extension WDPlayerLayerView: WPPlayerViewBarProtocol, WDPlayerTouchViewProtocol 
                 touchView.hidenThumView()
             }
             delegate?.eventValueChanged(currentlTime: currentlTime)
+            
         } else {
             if hasSupview(touchView) { touchView.showThumView(currentlTime: currentlTime) }
+            disPlayLoadingView(true)
         }
     }
     
