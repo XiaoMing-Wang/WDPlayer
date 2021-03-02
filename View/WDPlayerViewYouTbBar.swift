@@ -72,11 +72,11 @@ class WDPlayerViewYouTbBar: UIView {
         }
     }
     
+    public var isFullScreen: Bool = false
+    
     fileprivate weak var delegate: WPPlayerViewBarProtocol? = nil
     fileprivate weak var content: UIView? = nil
-    fileprivate var isFull: Bool = false
     fileprivate var isShowToolBar: Bool = true
-    
     fileprivate var minCententX: CGFloat = 0
     fileprivate var maxCententX: CGFloat = 0
     fileprivate var progressWidth: CGFloat = 0
@@ -103,9 +103,9 @@ class WDPlayerViewYouTbBar: UIView {
 
     fileprivate func automaticLayout() {
         guard youTbProgress.superview != nil else { return }
-        let height = WDPlayerConf.toolSliderHeight + (isFull ? WDPlayerSafeHeight + 10 : 0)
+        let height = WDPlayerConf.toolSliderHeight + (isFullScreen ? WDPlayerSafeHeight + 10 : 0)
         youTbProgress.snp.remakeConstraints { (make) in
-            if self.isFull == false {
+            if self.isFullScreen == false {
                 make.left.right.bottom.equalTo(0)
                 make.height.equalTo(height)
             } else {
@@ -134,13 +134,13 @@ class WDPlayerViewYouTbBar: UIView {
         }
 
         progressTimeLabel.snp.remakeConstraints { (make) in
-            make.left.equalTo((isFull ? 70 : 20))
+            make.left.equalTo((isFullScreen ? 70 : 20))
             make.bottom.equalTo(0)
         }
 
         if fullButton.superview != nil {
             fullButton.snp.remakeConstraints { (make) in
-                make.right.equalTo(isFull ? -60 : -8)
+                make.right.equalTo(isFullScreen ? -60 : -8)
                 make.centerY.equalTo(progressTimeLabel)
                 make.width.height.equalTo(WDPlayerConf.toolBarHeight)
             }
@@ -155,7 +155,7 @@ class WDPlayerViewYouTbBar: UIView {
     
     /**< 全屏布局 */
     public func fullConstraint(full: Bool = true) {
-        self.isFull = full
+        self.isFullScreen = full
         do {
             self.automaticLayout()
             self.layoutIfNeededAnimate()
@@ -165,11 +165,13 @@ class WDPlayerViewYouTbBar: UIView {
     /**< 展示 */
     func show(duration: TimeInterval = 0.25) {
         if isShowToolBar == true { return }
-        if isFull {
+        if isFullScreen {
             WDPlayerAssistant.animationShow(self, duration: duration)
         } else {
             WDPlayerAssistant.animationShow(animationView, duration: duration)
         }
+
+        resetAlpha()
         isShowThumb = true
         isShowToolBar = true
     }
@@ -177,7 +179,7 @@ class WDPlayerViewYouTbBar: UIView {
     /**< 隐藏 */
     func hide(duration: TimeInterval = 0.25) {
         if isShowToolBar == false { return }
-        if isFull {
+        if isFullScreen {
             isShowThumb = true
             WDPlayerAssistant.animationHiden(self, duration: duration)
 
@@ -186,6 +188,7 @@ class WDPlayerViewYouTbBar: UIView {
             WDPlayerAssistant.animationHiden(animationView, duration: duration)
         }
 
+        resetAlpha()
         isShowToolBar = false
     }
     
@@ -197,12 +200,13 @@ class WDPlayerViewYouTbBar: UIView {
     /**< 滑块回调 */
     func sliderCallback(currentlTime: Int, moving: Bool) {
         guard progressWidth > 0 else { return }
-        let width_gap = (WDPlayerConf.thumbnailWidth * 0.5) + (isFull ? 0 : 10)
+        let width_gap = (WDPlayerConf.thumbnailWidth * 0.5) + (isFullScreen ? 0 : 10)
         let minValue = (progressLeft) + width_gap
         let maxValue = (progressLeft + progressWidth) - width_gap
         delegate?.cancelHideToolbar()
         
         if moving == true {
+            
             let progress = CGFloat(currentlTime) / CGFloat(totalTime)
             let coordinates = progressLeft + progressWidth * progress
             let centerX = min(max(coordinates, minValue), maxValue)
@@ -220,12 +224,21 @@ class WDPlayerViewYouTbBar: UIView {
             
         } else {
 
+            self.resetAlpha()
             self.currentlTime = currentlTime
             delegate?.eventValueChanged(currentlTime: currentlTime, moving: false)
-            thumView.isHidden = true
-            fullButton.alpha = 1
-            suspendButton.alpha = 1
-            progressTimeLabel.alpha = 1
+            if isFullScreen == false { isShowThumb = false }
+        }
+    }
+
+    /**< 重置界面 */
+    @objc func resetAlpha() {
+        thumView.isHidden = true
+        fullButton.alpha = 1
+        suspendButton.alpha = 1
+        progressTimeLabel.alpha = 1
+        if isFullScreen == false && isShowToolBar == false {
+            isShowThumb = false
         }
     }
             
@@ -276,16 +289,9 @@ class WDPlayerViewYouTbBar: UIView {
         
     /**< 通知 */
     fileprivate func listenNotification() {
-        NotificationCenter.default.addObserver(self, selector: #selector(resignActive), name: UIApplication.willResignActiveNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(resetAlpha), name: UIApplication.willResignActiveNotification, object: nil)
     }
-        
-    /**< 隐藏 */
-    @objc func resignActive() {
-        thumView.isHidden = true
-        suspendButton.alpha = 1
-        progressTimeLabel.alpha = 1
-    }
-    
+           
     fileprivate lazy var progressTimeLabel: UILabel = {
         var progressTimeLabel = UILabel()
         progressTimeLabel.textAlignment = .center

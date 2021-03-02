@@ -20,7 +20,7 @@ class WPPlayerViewToolBar: UIView {
             automaticLayout()
         }
     }
-    
+
     /**< 总时间 */
     public var totalTime: Int = 0 {
         didSet {
@@ -36,7 +36,7 @@ class WPPlayerViewToolBar: UIView {
             setProgress()
         }
     }
-    
+
     /**< 缓冲 */
     public var bufferTime: Int = 0 {
         didSet {
@@ -53,7 +53,7 @@ class WPPlayerViewToolBar: UIView {
             suspendButton.isSelected = isSuspended
         }
     }
-  
+
     /**< 全屏 */
     public var isFullScreen: Bool = false {
         didSet {
@@ -63,7 +63,7 @@ class WPPlayerViewToolBar: UIView {
     
     /**< 全屏布局 */
     public func fullConstraint(full: Bool = true) {
-        isFull = full
+        isFullScreen = full
         automaticLayout()
         layoutIfNeededAnimate()
     }
@@ -75,10 +75,8 @@ class WPPlayerViewToolBar: UIView {
         startLabel.text = "00:00"
         endLabel.text = "00:00"
     }
-     
-   
+        
     fileprivate weak var delegate: WPPlayerViewBarProtocol? = nil
-    fileprivate var isFull: Bool = false
     var suspendClosure: ((Bool) -> Void)? = nil
   
     convenience init (totalTime: Int, delegate: WPPlayerViewBarProtocol?) {
@@ -112,7 +110,7 @@ class WPPlayerViewToolBar: UIView {
             make.right.equalTo(0)
         }
         
-        let margin = (isFull ? WDPlayerConf.playerToolMargin : 0)
+        let margin = (isFullScreen ? WDPlayerConf.playerToolMargin : 0)
         suspendButton.snp.remakeConstraints { (make) in
             make.left.equalTo(margin)
             make.top.equalTo(0)

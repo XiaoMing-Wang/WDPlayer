@@ -317,6 +317,7 @@ class WDPlayerLayerView: UIView {
             }
         }
 
+        /**< 另外的 */
         if hasSupview(youTbBar) {
             youTbBar?.fullConstraint(full: full)
         }
@@ -332,6 +333,7 @@ class WDPlayerLayerView: UIView {
         topBar.isFullScreen = true
         touchView.isFullScreen = true
         toolbarView.isFullScreen = true
+        youTbBar?.isFullScreen = true
         originalSizePlay = frame.size
         originalCenterYPlay = WDPlayerAssistant.locationWindow_play(self).origin.y + (originalSizePlay.height / 2)
                      
@@ -357,10 +359,11 @@ class WDPlayerLayerView: UIView {
             self.fullViewController = nil
             self.originalSizePlay = .zero
             self.originalCenterYPlay = 0
-            self.isFullScreen = false
             self.topBar.isFullScreen = false
             self.touchView.isFullScreen = false
             self.toolbarView.isFullScreen = false
+            self.youTbBar?.isFullScreen = false
+            self.isFullScreen = false
             self.tag = 0
         })
     }
@@ -398,7 +401,6 @@ class WDPlayerLayerView: UIView {
             }
                                     
         } else {
-            
             youTbBar?.show(duration: duration)
         }
         
@@ -410,7 +412,6 @@ class WDPlayerLayerView: UIView {
     /**< 隐藏导航栏 */
     fileprivate func hiddenToolBar(_ duration: TimeInterval = 0.25) {
         NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(_hiddenToolBar), object: nil)
-               
         if toolType == .tencent {
             hasSupview(topBar)?.snp.updateConstraints { (make) in
                 make.top.equalTo(-topBarDistance)
@@ -421,7 +422,6 @@ class WDPlayerLayerView: UIView {
             }
 
         } else {
-
             youTbBar?.hide(duration: duration)
         }
 

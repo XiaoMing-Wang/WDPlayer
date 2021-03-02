@@ -9,9 +9,9 @@ import UIKit
 
 class WPPlayerViewTopBar: UIView {
 
+    var isFullScreen: Bool = false
     fileprivate var titles: String? = nil
     fileprivate weak var delegate: WPPlayerViewBarProtocol? = nil
-    fileprivate var isFull: Bool = false
 
     convenience init (titles: String, delegate: WPPlayerViewBarProtocol?) {
         self.init()
@@ -20,12 +20,9 @@ class WPPlayerViewTopBar: UIView {
         self.initializationInterface()
     }
 
-    /**< 全屏 */
-    public var isFullScreen: Bool = false
-
     /**< 全屏布局 */
     public func fullConstraint(full: Bool = true) {
-        isFull = full
+        isFullScreen = full
         automaticLayout()
         layoutIfNeededAnimate()
     }
@@ -47,7 +44,7 @@ class WPPlayerViewTopBar: UIView {
             make.right.equalTo(0)
         }
         
-        let margin = (self.isFull ? WDPlayerConf.playerToolMargin : 0)
+        let margin = (self.isFullScreen ? WDPlayerConf.playerToolMargin : 0)
         backButton.snp.remakeConstraints { (make) in
             make.top.bottom.equalTo(0)
             make.left.equalTo(margin)
