@@ -188,7 +188,7 @@ class WDPlayerTouchView: UIView {
             make.width.equalTo(WDPlayerConf.thumbnailWidth)
             make.height.equalTo(WDPlayerConf.thumbnailWidth * (9 / 16.0) + 30)
             make.centerX.equalToSuperview()
-            make.centerY.equalToSuperview()
+            make.centerY.equalToSuperview().offset(8)
         }
         
         progressTimeLabel.text = "00:00"
