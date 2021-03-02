@@ -28,7 +28,7 @@ class WDPlayerConf: NSObject {
     static var callingPlaybackProgress: Bool = true
     
     /**< 工具栏风格 */
-    static var toolType: ToolType = .youtube
+    static var toolType: ToolType = .tencent
 
     /**< 进度调节 */
     static let playerProgressAdjustment: CGFloat = 240

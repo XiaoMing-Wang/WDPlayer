@@ -227,7 +227,6 @@ class WDPlayerViewYouTbBar: UIView {
             self.resetAlpha()
             self.currentlTime = currentlTime
             delegate?.eventValueChanged(currentlTime: currentlTime, moving: false)
-            if isFullScreen == false { isShowThumb = false }
         }
     }
 
