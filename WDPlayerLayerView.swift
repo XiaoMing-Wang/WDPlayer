@@ -93,7 +93,7 @@ class WDPlayerLayerView: UIView {
     
     /**< 直接显示菊花 加载前就显示出来 */
     var isDirectDisplayLoading: Bool = false {
-        didSet { disPlayLoadingView(true)  }
+        didSet { disPlayLoadingView(true, afterDelay: 0)  }
     }
     
     /**< 滑动手势 */
@@ -207,6 +207,7 @@ class WDPlayerLayerView: UIView {
     func disPlayLoadingView(_ display: Bool = true, afterDelay: TimeInterval = 0.30) {
         guard WDPlayerConf.supportLodaing else { return }
         if hasSupview(touchView) {
+            kLogPrint(display)
             display ? touchView.showLoadingView(afterDelay: afterDelay) : touchView.hiddenLoadingView()
         }
     }
@@ -240,7 +241,6 @@ class WDPlayerLayerView: UIView {
         toolbarView.reset()
         contentsView.image = nil
         isSetFirstImage = false
-        touchView.hiddenLoadingView()
     }
     
     
@@ -268,7 +268,6 @@ class WDPlayerLayerView: UIView {
     fileprivate func initializationInterface() {
         backgroundColor = .black
         clipsToBounds = (toolType == .tencent)
-        isDirectDisplayLoading = true
         isSupportVolumeBrightness = false
         tag = 0
 
@@ -286,6 +285,7 @@ class WDPlayerLayerView: UIView {
         automaticLayout()
         cancelHideToolbar()
         setContentMode(.blackBorder)
+        isDirectDisplayLoading = true
     }
 
     fileprivate func automaticLayout() {

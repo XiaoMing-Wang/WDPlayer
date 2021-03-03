@@ -281,7 +281,7 @@ class WDPlayerOperator: NSObject {
                 playView.setPlaybackLayer(player: player)
                 observerAny = player?.addPeriodicTimeObserver(forInterval: CMTime(value: 1, timescale: 1), queue: .global(), using: { [weak self] progressTime in
                     guard let self = self else { return }
-                    self.showPlayLoading(false)
+                    self.showPlayLoading(false) 
                     guard self.isTracking == false else { return }
                     let currentDuration = lroundf(Float(CMTimeGetSeconds(progressTime)))
                     self.currentDuration = currentDuration
