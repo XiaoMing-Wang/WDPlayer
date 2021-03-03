@@ -71,9 +71,8 @@ class WDPlayerViewYouTbBar: UIView {
             suspendButton.isSelected = isSuspended
         }
     }
-    
+
     public var isFullScreen: Bool = false
-    
     fileprivate weak var delegate: WPPlayerViewBarProtocol? = nil
     fileprivate weak var content: UIView? = nil
     fileprivate var isShowToolBar: Bool = true

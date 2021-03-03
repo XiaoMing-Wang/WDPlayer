@@ -45,17 +45,32 @@ class WDPlayerLayerView: UIView {
     /**< 是否显示工具栏 */
     var isSupportToolBar: Bool = WDPlayerConf.supportToolbar {
         didSet {
+                        
             if isSupportToolBar == false {
                 topBar.removeFromSuperview()
                 toolbarView.removeFromSuperview()
-                touchView.supportDoubleClick = false
+                youTbBar?.removeFromSuperview()
+                
             } else {
-                addSubview(topBar)
-                addSubview(toolbarView)
-                topBarDistance = WDPlayerConf.toolBarHeight
-                bottomBarDistance = WDPlayerConf.toolBarHeight
-                touchView.supportDoubleClick = true
+
+                if toolType == .tencent {
+                    
+                    clipsToBounds = true
+                    addSubview(topBar)
+                    addSubview(toolbarView)
+                    topBarDistance = WDPlayerConf.toolBarHeight
+                    bottomBarDistance = WDPlayerConf.toolBarHeight
+                    
+                } else if let youTbBar = youTbBar {
+                    
+                    clipsToBounds = false
+                    addSubview(youTbBar)
+                    touchView.supportDoubleClick = false
+                }
             }
+            
+            touchView.supportToolbar = isSupportToolBar
+            touchView.supportDoubleClick = isSupportToolBar
             automaticLayout()
         }
     }
@@ -110,6 +125,10 @@ class WDPlayerLayerView: UIView {
     /**< 工具栏模式 */
     public var toolType: WDPlayerConf.ToolType = WDPlayerConf.toolType {
         didSet {
+            if isSupportToolBar {
+                isSupportToolBar = false
+                isSupportToolBar = true
+            }
             if hasSupview(touchView) { touchView.toolType = toolType }
         }
     }
@@ -502,6 +521,7 @@ extension WDPlayerLayerView: WPPlayerViewBarProtocol, WDPlayerTouchViewProtocol 
             delegate?.eventValueChanged(currentlTime: currentlTime)
             
         } else {
+            
             if hasSupview(touchView) { touchView.showThumView(currentlTime: currentlTime) }
             disPlayLoadingView(true)
         }

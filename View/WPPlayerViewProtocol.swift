@@ -34,7 +34,6 @@ protocol WPPlayerViewBarProtocol: WPPlayerViewBaseProtocol {
 
     /// 点击全屏按钮
     func fullEvent(isFull: Bool)
-
 }
 
 protocol WDPlayerTouchViewProtocol: WPPlayerViewBaseProtocol {

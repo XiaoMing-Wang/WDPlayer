@@ -39,7 +39,18 @@ class WDPlayerTouchView: UIView {
     }
     
     public var toolType: WDPlayerConf.ToolType = WDPlayerConf.toolType {
-        didSet { }
+        didSet {
+            thumView.removeFromSuperview()
+            progressTimeLabel.removeFromSuperview()
+            if isThumView() {
+                suspendIsHidden = false
+                addSubview(thumView)
+            } else {
+                suspendIsHidden = true
+                addSubview(progressTimeLabel)
+            }
+            automaticLayout()
+        }
     }
 
     /**< 暂停 */
@@ -201,7 +212,7 @@ class WDPlayerTouchView: UIView {
     /**< 添加手势 */
     fileprivate func addGestures() {
 
-        /**< 单击双击 */
+        /**< 单击双击 doubleTap暂停 singleTap显示工具栏 */
         if supportToolbar, supportDoubleClick {
             let singleGesture = WDPlayerAssistant.addTapGesture(self, taps: 1, touches: 1, selector: #selector(singleTap))
             let doubleGesture = WDPlayerAssistant.addTapGesture(self, taps: 2, touches: 1, selector: #selector(doubleTap))
@@ -209,8 +220,9 @@ class WDPlayerTouchView: UIView {
             self.singleGesture = singleGesture
             self.doubleGesture = doubleGesture
         } else if supportToolbar, supportDoubleClick == false {
-            WDPlayerAssistant.addTapGesture(self, taps: 1, touches: 1, selector: #selector(singleTap))
+            WDPlayerAssistant.addTapGesture(self, taps: 1, touches: 1, selector: #selector(doubleTap))
         } else if supportToolbar == false {
+            suspendIsHidden = false
             WDPlayerAssistant.addTapGesture(self, taps: 1, touches: 1, selector: #selector(doubleTap))
         }
 
@@ -280,7 +292,6 @@ class WDPlayerTouchView: UIView {
         return WDPlayerLoadingView(frame: CGRect(x: 0, y: 0, width: 35, height: 35))
     }()
 
-    /**< 暂停图标 */
     fileprivate lazy var suspendButton: UIButton = {
         var suspendButton = UIButton()
         suspendButton.setBackgroundImage(UIImage(named: "new_allPlay_44x44_"), for: .normal)
