@@ -207,7 +207,6 @@ class WDPlayerLayerView: UIView {
     func disPlayLoadingView(_ display: Bool = true, afterDelay: TimeInterval = 0.30) {
         guard WDPlayerConf.supportLodaing else { return }
         if hasSupview(touchView) {
-            kLogPrint(display)
             display ? touchView.showLoadingView(afterDelay: afterDelay) : touchView.hiddenLoadingView()
         }
     }

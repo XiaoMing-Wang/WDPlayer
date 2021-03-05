@@ -56,7 +56,6 @@ class WDPlayerTouchView: UIView {
     /**< 暂停 */
     public var isSuspended: Bool = false {
         didSet {
-            kLogPrint(333333)
             suspendButton.isHidden = !isSuspended
             if suspendButton.isHidden == false {
                 hiddenLoadingView()

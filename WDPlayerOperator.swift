@@ -581,6 +581,9 @@ extension WDPlayerOperator: WDPlayerLayerViewDelegate {
     func play(layerView: WDPlayerLayerView) {
         status = .play
         player?.play()
+        if isFluentPlaying == false {
+            showPlayLoading(true)
+        }
     }
 
     /// 进度
