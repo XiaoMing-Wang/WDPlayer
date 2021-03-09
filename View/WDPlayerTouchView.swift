@@ -204,9 +204,11 @@ class WDPlayerTouchView: UIView {
         
         progressTimeLabel.text = "00:00"
         hasSupview(progressTimeLabel)?.snp.remakeConstraints { (make) in
-            make.centerX.equalToSuperview()
-            make.centerY.equalToSuperview()
+            make.width.equalTo(140)
+            make.height.equalTo(30)
+            make.centerX.centerY.equalToSuperview()
         }
+        
     }
     
     /**< 添加手势 */
@@ -324,10 +326,13 @@ class WDPlayerTouchView: UIView {
     public lazy var progressTimeLabel: UILabel = {
         var progressTimeLabel = UILabel()
         progressTimeLabel.textAlignment = .center
-        progressTimeLabel.font = .systemFont(ofSize: 32)
+        progressTimeLabel.font = .systemFont(ofSize: 17)
         progressTimeLabel.textColor = .white
         progressTimeLabel.numberOfLines = 1
         progressTimeLabel.isHidden = true
+        progressTimeLabel.backgroundColor = UIColor.black.withAlphaComponent(0.5)
+        progressTimeLabel.layer.cornerRadius = 5
+        progressTimeLabel.layer.masksToBounds = true
         return progressTimeLabel
     }()
     
