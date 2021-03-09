@@ -484,8 +484,8 @@ class WDPlayerLayerView: UIView {
     }()
 
     /**< 中间的触摸view */
-    fileprivate lazy var touchView: WDPlayerTouchView = {
-        var touchView = WDPlayerTouchView(delegate: self)
+    fileprivate lazy var touchView: WDPlayerViewTouchControl = {
+        var touchView = WDPlayerViewTouchControl(delegate: self)
         return touchView
     }()
 
@@ -553,12 +553,12 @@ extension WDPlayerLayerView: WPPlayerViewBarProtocol, WDPlayerTouchViewProtocol 
     }
             
     /**< 单击 */
-    func singleTap(touchView: WDPlayerTouchView) {
+    func singleTap(touchView: WDPlayerViewTouchControl) {
         handleBar()
     }
 
     /**< 双击 */
-    func doubleTap(touchView: WDPlayerTouchView) {
+    func doubleTap(touchView: WDPlayerViewTouchControl) {
         suspend()
     }
    

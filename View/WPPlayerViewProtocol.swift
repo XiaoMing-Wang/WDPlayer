@@ -39,8 +39,8 @@ protocol WPPlayerViewBarProtocol: WPPlayerViewBaseProtocol {
 protocol WDPlayerTouchViewProtocol: WPPlayerViewBaseProtocol {
 
     ///  单击
-    func singleTap(touchView: WDPlayerTouchView)
+    func singleTap(touchView: WDPlayerViewTouchControl)
 
     ///  双击
-    func doubleTap(touchView: WDPlayerTouchView)
+    func doubleTap(touchView: WDPlayerViewTouchControl)
 }

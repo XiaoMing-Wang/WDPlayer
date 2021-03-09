@@ -9,7 +9,7 @@ import UIKit
 import MediaPlayer
 import AVFoundation
 
-class WDPlayerTouchView: UIView {
+class WDPlayerViewTouchControl: UIView {
 
     enum PanDirection {
         case free
@@ -204,7 +204,7 @@ class WDPlayerTouchView: UIView {
         
         progressTimeLabel.text = "00:00"
         hasSupview(progressTimeLabel)?.snp.remakeConstraints { (make) in
-            make.width.equalTo(140)
+            make.width.equalTo(160)
             make.height.equalTo(30)
             make.centerX.centerY.equalToSuperview()
         }
@@ -326,7 +326,7 @@ class WDPlayerTouchView: UIView {
     public lazy var progressTimeLabel: UILabel = {
         var progressTimeLabel = UILabel()
         progressTimeLabel.textAlignment = .center
-        progressTimeLabel.font = .systemFont(ofSize: 17)
+        progressTimeLabel.font = .systemFont(ofSize: 16)
         progressTimeLabel.textColor = .white
         progressTimeLabel.numberOfLines = 1
         progressTimeLabel.isHidden = true
@@ -338,7 +338,7 @@ class WDPlayerTouchView: UIView {
     
 }
 
-extension WDPlayerTouchView {
+extension WDPlayerViewTouchControl {
     
     /**< 滑动手势 */
     @objc func handleSwipe(pan: UIPanGestureRecognizer) {
@@ -400,7 +400,7 @@ extension WDPlayerTouchView {
                 if displacement > 0 {
 
                     slipInstantaneousEndTime = min(slipInstantaneousTime + amplitude, totalTime)
-                    progressTimeLabel.text = WDPlayerAssistant.timeTranslate(slipInstantaneousEndTime) + " / " + WDPlayerAssistant.timeTranslate(totalTime)
+                    progressTimeLabel.text = WDPlayerAssistant.timeTranslate(slipInstantaneousEndTime) + "  /  " + WDPlayerAssistant.timeTranslate(totalTime)
                     thumView.currentlTime = slipInstantaneousEndTime
                     delegate?.currentImage(currentTime: slipInstantaneousEndTime, results: { self.thumView.currentlImage = $0 })
                                        
@@ -413,7 +413,7 @@ extension WDPlayerTouchView {
                 } else {
 
                     slipInstantaneousEndTime = max(slipInstantaneousTime - amplitude, 0)
-                    progressTimeLabel.text = WDPlayerAssistant.timeTranslate(slipInstantaneousEndTime) + " / " + WDPlayerAssistant.timeTranslate(totalTime)
+                    progressTimeLabel.text = WDPlayerAssistant.timeTranslate(slipInstantaneousEndTime) + "  /  " + WDPlayerAssistant.timeTranslate(totalTime)
                     thumView.currentlTime = slipInstantaneousEndTime
                     delegate?.currentImage(currentTime: slipInstantaneousEndTime, results: { self.thumView.currentlImage = $0 })
                                         
