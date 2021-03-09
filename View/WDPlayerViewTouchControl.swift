@@ -204,7 +204,7 @@ class WDPlayerViewTouchControl: UIView {
         
         progressTimeLabel.text = "00:00"
         hasSupview(progressTimeLabel)?.snp.remakeConstraints { (make) in
-            make.width.equalTo(160)
+            make.width.equalTo(150)
             make.height.equalTo(30)
             make.centerX.centerY.equalToSuperview()
         }
