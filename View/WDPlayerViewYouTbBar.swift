@@ -81,6 +81,7 @@ class WDPlayerViewYouTbBar: UIView {
     fileprivate var maxCententX: CGFloat = 0
     fileprivate var progressWidth: CGFloat = 0
     fileprivate var progressLeft: CGFloat = 0
+    fileprivate var currentPreviewTime: Int = 0
     convenience init (content: UIView?, delegate: WPPlayerViewBarProtocol?) {
         self.init()
         self.content = content
@@ -207,11 +208,16 @@ class WDPlayerViewYouTbBar: UIView {
         
         if moving == true {
             
+            currentPreviewTime = currentlTime
             let progress = CGFloat(currentlTime) / CGFloat(totalTime)
             let coordinates = progressLeft + progressWidth * progress
             let centerX = min(max(coordinates, minValue), maxValue)
-
-            delegate?.currentImage(currentTime: currentlTime, results: { self.thumView.currentlImage = $0 })
+            delegate?.currentImage(currentTime: currentlTime, results: { (image, second) in
+                if abs(self.currentPreviewTime) - abs(second) <= 2 {
+                    self.thumView.currentlImage = image
+                }
+            })
+            
             thumView.isHidden = false
             thumView.currentlTime = currentlTime
             thumView.snp.updateConstraints { (make) in
@@ -385,10 +391,12 @@ class WDPlayerViewYouTbProgress: UIView {
     /**< 暂停 */
     public var isSuspended: Bool = false {
         didSet {
-            if isSuspended == false {
-                progressSlider.minimumTrackTintColor = UIColor(red: 0 / 255.0, green: 191 / 255.0, blue: 255 / 255.0, alpha: 1)
-            } else {
-                progressSlider.minimumTrackTintColor = UIColor(red: 20 / 255.0, green: 160 / 255.0, blue: 255 / 255.0, alpha: 1)
+            UIView.animate(withDuration: 0.25) {
+                if self.isSuspended == false {
+                    self.progressSlider.minimumTrackTintColor = UIColor(red: 0 / 255.0, green: 191 / 255.0, blue: 255 / 255.0, alpha: 1)
+                } else {
+                    self.progressSlider.minimumTrackTintColor = UIColor(red: 0 / 255.0, green: 191 / 255.0, blue: 255 / 255.0, alpha: 1).withAlphaComponent(0.50)
+                }
             }
         }
     }
@@ -410,15 +418,15 @@ class WDPlayerViewYouTbProgress: UIView {
         progressView.snp.remakeConstraints { (make) in
             make.left.equalTo(0)
             make.right.equalTo(0)
-            make.top.equalTo(WDPlayerConf.toolSliderHeight - 3)
-            make.height.equalTo(3)
+            make.top.equalTo(WDPlayerConf.toolSliderHeight - 4)
+            make.height.equalTo(4)
         }
 
         progressSlider.snp.remakeConstraints { (make) in
             make.left.equalTo(0)
             make.right.equalTo(0)
             make.height.equalTo(WDPlayerConf.toolSliderHeight)
-            make.centerY.equalTo(progressView).offset(-1.5)
+            make.centerY.equalTo(progressView).offset(-1.0)
         }
     }
 

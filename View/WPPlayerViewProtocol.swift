@@ -24,7 +24,7 @@ protocol WPPlayerViewBaseProtocol:class {
     func cancelHideToolbar()
     
     ///获取当前截图
-    func currentImage(currentTime: Int, results: @escaping (UIImage?) -> Void)
+    func currentImage(currentTime: Int, results: @escaping (UIImage?, Int) -> Void)
 }
 
 protocol WPPlayerViewBarProtocol: WPPlayerViewBaseProtocol {

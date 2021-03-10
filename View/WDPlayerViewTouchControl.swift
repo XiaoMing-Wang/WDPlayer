@@ -93,7 +93,9 @@ class WDPlayerViewTouchControl: UIView {
     func showThumView(currentlTime: Int) {
         thumView.isHidden = false
         thumView.currentlTime = currentlTime
-        delegate?.currentImage(currentTime: currentlTime, results: { self.thumView.currentlImage = $0 })
+        delegate?.currentImage(currentTime: currentlTime, results: {(image, second) in
+            self.thumView.currentlImage = image
+        })
     }
     
     /**< 隐藏 */
@@ -402,7 +404,9 @@ extension WDPlayerViewTouchControl {
                     slipInstantaneousEndTime = min(slipInstantaneousTime + amplitude, totalTime)
                     progressTimeLabel.text = WDPlayerAssistant.timeTranslate(slipInstantaneousEndTime) + "  /  " + WDPlayerAssistant.timeTranslate(totalTime)
                     thumView.currentlTime = slipInstantaneousEndTime
-                    delegate?.currentImage(currentTime: slipInstantaneousEndTime, results: { self.thumView.currentlImage = $0 })
+                    delegate?.currentImage(currentTime: slipInstantaneousEndTime, results: {(image, second) in
+                        self.thumView.currentlImage = image
+                    })
                                        
                     if slipInstantaneousEndTime >= totalTime {
                         slipInstantaneousTime = totalTime
@@ -415,7 +419,9 @@ extension WDPlayerViewTouchControl {
                     slipInstantaneousEndTime = max(slipInstantaneousTime - amplitude, 0)
                     progressTimeLabel.text = WDPlayerAssistant.timeTranslate(slipInstantaneousEndTime) + "  /  " + WDPlayerAssistant.timeTranslate(totalTime)
                     thumView.currentlTime = slipInstantaneousEndTime
-                    delegate?.currentImage(currentTime: slipInstantaneousEndTime, results: { self.thumView.currentlImage = $0 })
+                    delegate?.currentImage(currentTime: slipInstantaneousEndTime, results: {(image, second) in
+                        self.thumView.currentlImage = image
+                    })
                                         
                     if slipInstantaneousEndTime <= 0 {
                         slipInstantaneousTime = 0

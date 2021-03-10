@@ -415,12 +415,14 @@ class WDPlayerOperator: NSObject {
                 getAssetDuration()
                 retryCount = false
                 delegate?.bufferSuccess?(play: self)
+                kLogPrint("可以播放 :\(playURL!)")
                 
             } else if playerItem?.status == .readyToPlay, status == .buffer || status == .wait {
                 stop()
                 getAssetDuration()
                 retryCount = false
                 delegate?.bufferSuccess?(play: self)
+                kLogPrint("可以播放 :\(playURL!)")
                                
             } else if playerItem?.status == .failed || playerItem?.status == .unknown {
                 

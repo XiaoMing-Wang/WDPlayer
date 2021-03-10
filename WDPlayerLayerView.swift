@@ -506,7 +506,8 @@ class WDPlayerLayerView: UIView {
 
 /**< 工具栏回调  触摸view回调 */
 extension WDPlayerLayerView: WPPlayerViewBarProtocol, WDPlayerTouchViewProtocol {
-    
+       
+           
     /**< 进度 */
     func eventValueChanged(currentlTime: Int, moving: Bool) {
         if moving == false {
@@ -578,7 +579,7 @@ extension WDPlayerLayerView: WPPlayerViewBarProtocol, WDPlayerTouchViewProtocol 
     }
     
     /**< 当前图片 */
-    func currentImage(currentTime: Int, results: @escaping (UIImage?) -> Void) {
+    func currentImage(currentTime: Int, results: @escaping (UIImage?, Int) -> Void) {
         currentImage(second: currentTime, results: results)
     }
 }
@@ -599,7 +600,7 @@ fileprivate extension WDPlayerLayerView {
     }
     
     /**< 获取某一帧率 */
-    func currentImage(second: Int = 1, results: @escaping (UIImage?) -> Void) {
+    func currentImage(second: Int = 1, results: @escaping (UIImage?, Int) -> Void) {
         if assetImageTime == second { return }
         guard let asset = contentsView.playerLayer?.player?.currentItem?.asset else { return }
         if assetImageGenerator == nil {
@@ -615,7 +616,7 @@ fileprivate extension WDPlayerLayerView {
         assetImageTime = second
         assetImageGenerator?.generateCGImagesAsynchronously(forTimes: forTimes, completionHandler: { (timer, cgImage, _, result, error) in
             if let cgImage = cgImage, error == nil {
-                DispatchQueue.main.async { results(UIImage(cgImage: cgImage)) }
+                DispatchQueue.main.async { results(UIImage(cgImage: cgImage), second) }
             }
         })
 
