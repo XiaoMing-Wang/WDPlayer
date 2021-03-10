@@ -59,8 +59,8 @@ class WDPlayerViewTouchControl: UIView {
             suspendButton.isHidden = !isSuspended
             if suspendButton.isHidden == false {
                 hiddenLoadingView()
-            } else if isShowLoading {
-                showLoadingView(afterDelay: 0.25)
+            } else {
+                if isShowLoading { showLoadingView(afterDelay: 0.25) }
             }
         }
     }

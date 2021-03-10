@@ -69,6 +69,7 @@ class WDPlayerViewYouTbBar: UIView {
     public var isSuspended: Bool = false {
         didSet {
             suspendButton.isSelected = isSuspended
+            youTbProgress.isSuspended = isSuspended
         }
     }
 
@@ -370,7 +371,7 @@ class WDPlayerViewYouTbProgress: UIView {
     fileprivate var currentlTime: Int = 0 {
         didSet { setProgress() }
     }
-
+    
     /**< 缓冲 */
     fileprivate var bufferTime: Int = 0 {
         didSet {
@@ -378,6 +379,14 @@ class WDPlayerViewYouTbProgress: UIView {
             var ratio = Float(bufferTime) / Float(totalTime)
             if ratio >= 0.98 { ratio = 1 }
             progressView.setProgress(ratio, animated: true)
+        }
+    }
+    
+    /**< 暂停 */
+    public var isSuspended: Bool = false {
+        didSet {
+            let color = UIColor(red: 0 / 255.0, green: 191 / 255.0, blue: 255 / 255.0, alpha: 1)
+            progressSlider.minimumTrackTintColor = color.withAlphaComponent((isSuspended ? 0.5 : 1))
         }
     }
 
