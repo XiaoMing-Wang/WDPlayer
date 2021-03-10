@@ -385,8 +385,11 @@ class WDPlayerViewYouTbProgress: UIView {
     /**< 暂停 */
     public var isSuspended: Bool = false {
         didSet {
-            let color = UIColor(red: 0 / 255.0, green: 191 / 255.0, blue: 255 / 255.0, alpha: 1)
-            progressSlider.minimumTrackTintColor = color.withAlphaComponent((isSuspended ? 0.5 : 1))
+            if isSuspended == false {
+                progressSlider.minimumTrackTintColor = UIColor(red: 0 / 255.0, green: 191 / 255.0, blue: 255 / 255.0, alpha: 1)
+            } else {
+                progressSlider.minimumTrackTintColor = UIColor(red: 20 / 255.0, green: 160 / 255.0, blue: 255 / 255.0, alpha: 1)
+            }
         }
     }
 
@@ -407,8 +410,8 @@ class WDPlayerViewYouTbProgress: UIView {
         progressView.snp.remakeConstraints { (make) in
             make.left.equalTo(0)
             make.right.equalTo(0)
-            make.top.equalTo(WDPlayerConf.toolSliderHeight - 2.5)
-            make.height.equalTo(2.5)
+            make.top.equalTo(WDPlayerConf.toolSliderHeight - 3)
+            make.height.equalTo(3)
         }
 
         progressSlider.snp.remakeConstraints { (make) in
