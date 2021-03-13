@@ -511,19 +511,36 @@ extension WDPlayerLayerView: WPPlayerViewBarProtocol, WDPlayerTouchViewProtocol 
     /**< 进度 */
     func eventValueChanged(currentlTime: Int, moving: Bool) {
         if moving == false {
-            self.currentlTime = currentlTime
-            if hasSupview(toolbarView) { toolbarView.currentlTime = currentlTime }
-            if hasSupview(youTbBar) { youTbBar?.currentlTime = currentlTime }
+            if hasSupview(toolbarView) {
+                toolbarView.currentlTime = currentlTime
+            }
+            
+            if hasSupview(youTbBar), let youTbBar = youTbBar {
+                youTbBar.isTracking = false
+                youTbBar.currentlTime = currentlTime
+                insertSubview(youTbBar, aboveSubview: touchView)
+            }
+            
             if hasSupview(touchView) {
                 touchView.currentlTime = currentlTime
                 touchView.hidenThumView()
             }
+            
+            self.currentlTime = currentlTime
             delegate?.eventValueChanged(currentlTime: currentlTime)
             
         } else {
             
-            if hasSupview(touchView) { touchView.showThumView(currentlTime: currentlTime) }
             disPlayLoadingView(true)
+            if hasSupview(touchView) {
+                touchView.showThumView(currentlTime: currentlTime)
+            }
+            
+            if hasSupview(youTbBar), let youTbBar = youTbBar {
+                youTbBar.setProgressmandatory(currentlTime: currentlTime)
+                insertSubview(youTbBar, belowSubview: touchView)
+            }
+            
         }
     }
     

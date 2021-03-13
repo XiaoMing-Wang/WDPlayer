@@ -64,12 +64,13 @@ class WDPlayerFullTransition: NSObject, UIViewControllerAnimatedTransitioning {
         playerView.center = CGPoint(x: originalCenterXPlay, y: playerHeight / 2)
         
         /**< 还原播放界面 */
-        UIView.animate(withDuration: transitionDuration(using: transitionContext), delay: 0, options: .curveEaseOut) {
+                
+         UIView.animateKeyframes(withDuration: transitionDuration(using: transitionContext), delay: 0, options: .calculationModeCubic, animations: {
             playerView.frame = CGRect(x: 0, y: 0, width: height, height: width)
             playerView.center = CGPoint(x: width / 2, y: height / 2)
             playerView.transform = .identity
             playerView.layoutIfNeeded()
-        } completion: { _ in
+        }) { _ in
             transitionContext.completeTransition(!transitionContext.transitionWasCancelled)
         }
     }
@@ -96,12 +97,12 @@ class WDPlayerFullTransition: NSObject, UIViewControllerAnimatedTransitioning {
         containerView.addSubview(toView)
         containerView.addSubview(playerView)
         
-        UIView.animate(withDuration: transitionDuration(using: transitionContext), delay: 0, options: .curveEaseOut) {
+        UIView.animateKeyframes(withDuration: transitionDuration(using: transitionContext), delay: 0, options: .calculationModeCubic, animations: {
             playerView.frame = CGRect(x: 0, y: 0, width: originalWidth, height: originalHeight)
             playerView.transform = .identity
             playerView.center = CGPoint(x: width / 2, y: originalCenterY)
             playerView.layoutIfNeeded()
-        } completion: { _ in
+        }) { _ in
             if let originalSupView = playerView.originalSupView {
                 originalSupView.addSubview(playerView)
                 playerView.frame = CGRect(x: 0, y: 0, width: playerView.frame.width, height: playerView.frame.height)

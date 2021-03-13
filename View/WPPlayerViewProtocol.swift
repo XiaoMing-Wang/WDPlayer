@@ -8,7 +8,10 @@
 import UIKit
 
 protocol WPPlayerViewBaseProtocol:class {
-
+    
+    ///滑动
+    //func sliding(_ isEnd: Bool)
+    
     /// 进度回调
     /// - Parameter currentlTime: currentlTime
     func eventValueChanged(currentlTime: Int, moving: Bool)
@@ -43,4 +46,5 @@ protocol WDPlayerTouchViewProtocol: WPPlayerViewBaseProtocol {
 
     ///  双击
     func doubleTap(touchView: WDPlayerViewTouchControl)
+
 }

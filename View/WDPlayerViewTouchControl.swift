@@ -381,13 +381,13 @@ extension WDPlayerViewTouchControl {
                 volume.isHidden = false
                 slipInstantaneousTime = volume.progress
             }
-                     
-            delegate?.hiddenBar(hidden: true, isAnimation: false)
-            playerCancelPrevious(selector: #selector(hidenDelay), afterDelay: -1)
         }
 
         if (pan.state == .changed) {
-                                    
+            
+            delegate?.cancelHideToolbar()
+            playerCancelPrevious(selector: #selector(hidenDelay), afterDelay: -1)
+            
             /**< 进度 */
             if panDirection == .horizontal {
                 hasSupview(thumView)?.isHidden = false
@@ -413,7 +413,6 @@ extension WDPlayerViewTouchControl {
                         horizontalX = location.x
                     }
 
-
                 } else {
 
                     slipInstantaneousEndTime = max(slipInstantaneousTime - amplitude, 0)
@@ -428,6 +427,8 @@ extension WDPlayerViewTouchControl {
                         horizontalX = location.x
                     }
                 }
+                
+                delegate?.eventValueChanged(currentlTime: slipInstantaneousEndTime, moving: true)
             }
             
             func relocation(_ caps: Bool = true) {

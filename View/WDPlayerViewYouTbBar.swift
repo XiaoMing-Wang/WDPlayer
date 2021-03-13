@@ -72,6 +72,21 @@ class WDPlayerViewYouTbBar: UIView {
             youTbProgress.isSuspended = isSuspended
         }
     }
+        
+    /**< 是否可以触动滑块 */
+    var isTracking: Bool = false {
+        didSet {
+            youTbProgress.isTracking = isTracking
+            suspendButton.alpha = isTracking ? 0 : 1
+            print(isTracking)
+        }
+    }
+    
+    /** 强制滑动滑块 */
+    func setProgressmandatory(currentlTime: Int) {
+        self.isTracking = true
+        youTbProgress.setProgressmandatory(currentlTime: currentlTime)
+    }
 
     public var isFullScreen: Bool = false
     fileprivate weak var delegate: WPPlayerViewBarProtocol? = nil
@@ -356,7 +371,9 @@ class WDPlayerViewYouTbBar: UIView {
 
 class WDPlayerViewYouTbProgress: UIView {
 
+    var isTracking: Bool = false
     var progressClosure: ((Int, Bool) -> ())? = nil
+    
     convenience init (delegate: WPPlayerViewBarProtocol?) {
         self.init()
         self.initializationInterface()
@@ -408,11 +425,15 @@ class WDPlayerViewYouTbProgress: UIView {
     }
     
     fileprivate func setProgress() {
-        if progressSlider.isTracking { return }
+        if progressSlider.isTracking || isTracking { return }
+        setProgressmandatory(currentlTime: currentlTime)
+    }
+
+    fileprivate func setProgressmandatory(currentlTime: Int) {
         guard totalTime > 0 else { return }
         let progress = Float(currentlTime) / Float(totalTime)
         progressSlider.value = progress
-    }
+     }
 
     fileprivate func automaticLayout() {
         progressView.snp.remakeConstraints { (make) in
@@ -434,7 +455,7 @@ class WDPlayerViewYouTbProgress: UIView {
     @objc func eventValueChanged() {
         currentlTime = Int(progressSlider.value * Float(totalTime))
         if progressSlider.isTracking {
-
+                        
             /**< 滑动中 */
             progressClosure?(currentlTime, true)
             progressSlider.setThumbImage(UIImage(named: "sliderBlue"), for: .normal)

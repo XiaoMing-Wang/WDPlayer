@@ -33,14 +33,14 @@ extension UIViewController {
     
     class func currentVC(_ controller: UIViewController? = UIApplication.shared.keyWindow?.rootViewController) -> UIViewController? {
         if let presented = controller?.presentedViewController {
-            return currentViewController(presented)
+            return currentVC(presented)
         }
 
         if let nav = controller as? UINavigationController {
-            return currentViewController(nav.topViewController)
+            return currentVC(nav.topViewController)
         }
         if let tab = controller as? UITabBarController {
-            return currentViewController(tab.selectedViewController)
+            return currentVC(tab.selectedViewController)
         }
         
         return controller

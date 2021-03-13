@@ -94,9 +94,9 @@ class WDPlayerAssistant: NSObject {
     /**< 动画隐藏 */
     class func animationHiden(_ view: UIView, duration: TimeInterval = 0.25) {
         if view.isHidden == true { return }
-        UIView.animate(withDuration: duration) {
+        UIView.animate(withDuration: duration, animations: {
             view.alpha = 0
-        } completion: { _ in
+        }) { _ in
             view.alpha = 1
             view.isHidden = true
         }
@@ -107,9 +107,9 @@ class WDPlayerAssistant: NSObject {
         if view.isHidden == false, view.alpha == 1 { return }
         view.alpha = 0
         view.isHidden = false
-        UIView.animate(withDuration: duration) {
+        UIView.animate(withDuration: duration, animations: {
             view.alpha = 1
-        } completion: { _ in
+        }) { _ in
             view.isHidden = false
         }
     }
