@@ -537,7 +537,7 @@ extension WDPlayerLayerView: WPPlayerViewBarProtocol, WDPlayerTouchViewProtocol 
             }
             
             if hasSupview(youTbBar), let youTbBar = youTbBar {
-                youTbBar.setProgressmandatory(currentlTime: currentlTime)
+                //youTbBar.setProgressmandatory(currentlTime: currentlTime)
                 insertSubview(youTbBar, belowSubview: touchView)
             }
             

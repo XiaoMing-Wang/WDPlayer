@@ -169,6 +169,7 @@ class WDPlayerViewTouchControl: UIView {
         if supportPanGestureRecognizer {
             addSubview(brightness)
             addSubview(volume)
+            //addSubview(thumView)
             isThumView() ? addSubview(thumView) : addSubview(progressTimeLabel)
         }
         automaticLayout()
@@ -320,7 +321,7 @@ class WDPlayerViewTouchControl: UIView {
     
     fileprivate lazy var thumView: WDPlayerThumView = {
         var thumView = WDPlayerThumView(delegate: delegate)
-        thumView.progressTimeLabel.font = .systemFont(ofSize: 20)
+        thumView.progressTimeLabel.font = .systemFont(ofSize: 17)
         thumView.isHidden = true
         return thumView
     }()
