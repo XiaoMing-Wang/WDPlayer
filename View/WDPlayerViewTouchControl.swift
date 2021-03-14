@@ -402,11 +402,12 @@ extension WDPlayerViewTouchControl {
 
         if (pan.state == .changed) {
             
-            delegate?.cancelHideToolbar()
+            delegate?.hiddenBar(hidden: true, isAnimation: false)
             playerCancelPrevious(selector: #selector(hidenDelay), afterDelay: -1)
-            
+                        
             /**< 进度 */
             if panDirection == .horizontal {
+                
                 hasSupview(thumView)?.isHidden = false
                 hasSupview(progressTimeLabel)?.isHidden = false
                 
@@ -460,6 +461,7 @@ extension WDPlayerViewTouchControl {
                         
             /**< 亮度 */
             if panDirection == .verticalLeft {
+                
                 brightness.isHidden = false
                 let displacement = location.y - verticalY
                 let displacementABS = abs(displacement)
@@ -484,6 +486,8 @@ extension WDPlayerViewTouchControl {
             
             /**< 音量 */
             if panDirection == .verticalRight {
+                
+                
                 volume.isHidden = false
                 let displacement = location.y - verticalY
                 let displacementABS = abs(displacement)

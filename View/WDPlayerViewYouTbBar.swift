@@ -76,7 +76,7 @@ class WDPlayerViewYouTbBar: UIView {
     /**< 是否可以触动滑块 */
     var isTracking: Bool = false {
         didSet {
-            youTbProgress.isTracking = isTracking
+            /** youTbProgress.isTracking = isTracking */
             suspendButton.alpha = isTracking ? 0 : 1
         }
     }

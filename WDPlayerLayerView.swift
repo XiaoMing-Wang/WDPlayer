@@ -539,7 +539,6 @@ extension WDPlayerLayerView: WPPlayerViewBarProtocol, WDPlayerTouchViewProtocol 
             if hasSupview(youTbBar), let youTbBar = youTbBar {
                 youTbBar.isTracking = false
                 youTbBar.currentlTime = currentlTime
-                insertSubview(youTbBar, aboveSubview: touchView)
             }
             
             if hasSupview(touchView) {
@@ -554,11 +553,7 @@ extension WDPlayerLayerView: WPPlayerViewBarProtocol, WDPlayerTouchViewProtocol 
             
             disPlayLoadingView(true)
             if hasSupview(touchView) { touchView.showThumView(currentlTime: currentlTime) }
-            if hasSupview(youTbBar), let youTbBar = youTbBar {
-                youTbBar.isTracking = true
-                insertSubview(youTbBar, belowSubview: touchView)
-            }
-            
+            if hasSupview(youTbBar) {  youTbBar?.isTracking = true }
         }
     }
     
