@@ -129,7 +129,10 @@ class WDPlayerLayerView: UIView {
                 isSupportToolBar = false
                 isSupportToolBar = true
             }
-            if hasSupview(touchView) { touchView.toolType = toolType }
+            
+            if hasSupview(touchView) {
+                touchView.toolType = toolType
+            }
         }
     }
         
@@ -275,12 +278,14 @@ class WDPlayerLayerView: UIView {
         if toolType == .tencent, isSupportToolBar {
             addSubview(topBar)
             addSubview(toolbarView)
+            
         } else if toolType == .youtube, isSupportToolBar, let youTbBar = youTbBar {
             insertSubview(youTbBar, aboveSubview: touchView)
             touchView.suspendIsHidden = true
             isShowToolBar = false
         }
         
+        listenNotification()
         automaticLayout()
         cancelHideToolbar()
         setContentMode(.blackBorder)
@@ -403,22 +408,23 @@ class WDPlayerLayerView: UIView {
             hiddenToolBar()
         } else {
             showToolBar()
+            cancelHideToolbar()
         }
     }
 
     /**< 显示导航栏 */
     @objc fileprivate func showToolBar(_ duration: TimeInterval = 0.25) {
-        cancelHideToolbar()
         if toolType == .tencent {
             hasSupview(topBar)?.snp.updateConstraints { (make) in
                 make.top.equalTo(0)
             }
-                        
+            
             hasSupview(toolbarView)?.snp.updateConstraints { (make) in
                 make.bottom.equalTo(0)
             }
-                                    
+            
         } else {
+            
             youTbBar?.show(duration: duration)
         }
         
@@ -459,6 +465,24 @@ class WDPlayerLayerView: UIView {
             return
         }
         UIView.animate(withDuration: duration) { self.layoutIfNeeded() }
+    }
+    
+    /**< 通知 */
+    fileprivate func listenNotification() {
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(didBecomeActive),
+            name: UIApplication.didBecomeActiveNotification,
+            object: nil
+        )
+    }
+
+    //前台
+    @objc fileprivate func didBecomeActive() {
+        if hasSupview(youTbBar), let youTbBar = youTbBar {
+            youTbBar.isTracking = false
+            insertSubview(youTbBar, aboveSubview: touchView)
+        }
     }
     
     /**< 自动布局设置frame */
@@ -506,15 +530,12 @@ class WDPlayerLayerView: UIView {
 
 /**< 工具栏回调  触摸view回调 */
 extension WDPlayerLayerView: WPPlayerViewBarProtocol, WDPlayerTouchViewProtocol {
-       
            
     /**< 进度 */
     func eventValueChanged(currentlTime: Int, moving: Bool) {
         if moving == false {
-            if hasSupview(toolbarView) {
-                toolbarView.currentlTime = currentlTime
-            }
             
+            if hasSupview(toolbarView) { toolbarView.currentlTime = currentlTime }
             if hasSupview(youTbBar), let youTbBar = youTbBar {
                 youTbBar.isTracking = false
                 youTbBar.currentlTime = currentlTime
@@ -532,12 +553,9 @@ extension WDPlayerLayerView: WPPlayerViewBarProtocol, WDPlayerTouchViewProtocol 
         } else {
             
             disPlayLoadingView(true)
-            if hasSupview(touchView) {
-                touchView.showThumView(currentlTime: currentlTime)
-            }
-            
+            if hasSupview(touchView) { touchView.showThumView(currentlTime: currentlTime) }
             if hasSupview(youTbBar), let youTbBar = youTbBar {
-                //youTbBar.setProgressmandatory(currentlTime: currentlTime)
+                youTbBar.isTracking = true
                 insertSubview(youTbBar, belowSubview: touchView)
             }
             
@@ -554,7 +572,9 @@ extension WDPlayerLayerView: WPPlayerViewBarProtocol, WDPlayerTouchViewProtocol 
     func cancelHideToolbar() {
         if hasSupview(topBar) || hasSupview(toolbarView) || hasSupview(youTbBar) {
             NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(_hiddenToolBar), object: nil)
-            perform(#selector(_hiddenToolBar), with: nil, afterDelay: 3)
+            if isSuspended == false {
+                perform(#selector(_hiddenToolBar), with: nil, afterDelay: 3)
+            }
         }
     }
     

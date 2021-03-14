@@ -101,6 +101,7 @@ class WDPlayerViewTouchControl: UIView {
     /**< 隐藏 */
     func hidenThumView() {
         thumView.isHidden = true
+        progressTimeLabel.isHidden = true
     }
     
     /// 显示菊花
@@ -261,8 +262,19 @@ class WDPlayerViewTouchControl: UIView {
             object: nil
         )
         
-        /**< 通知 */
-        NotificationCenter.default.addObserver(self, selector: #selector(resignActive), name: UIApplication.didBecomeActiveNotification, object: nil)
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(didBecomeActive),
+            name: UIApplication.didBecomeActiveNotification,
+            object: nil
+        )
+        
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(resignActive),
+            name: UIApplication.willResignActiveNotification,
+            object: nil
+        )
     }
         
     @objc func volumeChange(_ notification: NSNotification) {
@@ -279,8 +291,12 @@ class WDPlayerViewTouchControl: UIView {
             playerCancelPrevious(selector: #selector(hidenDelay), afterDelay: 2)
         }
     }
-
+    
     @objc fileprivate func resignActive() {
+        hidenThumView()
+    }
+    
+    @objc fileprivate func didBecomeActive() {
         guard supportPanGestureRecognizer else { return }
         brightness.progress = Int(UIScreen.main.brightness * 100)
     }

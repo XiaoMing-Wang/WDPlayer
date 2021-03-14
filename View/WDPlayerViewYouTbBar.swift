@@ -78,7 +78,6 @@ class WDPlayerViewYouTbBar: UIView {
         didSet {
             youTbProgress.isTracking = isTracking
             suspendButton.alpha = isTracking ? 0 : 1
-            print(isTracking)
         }
     }
     
@@ -280,7 +279,11 @@ class WDPlayerViewYouTbBar: UIView {
         suspendButton.isSelected = !suspendButton.isSelected
         isSuspended = suspendButton.isSelected
         delegate?.suspended(isSuspended: isSuspended)
-        isSuspended ? delegate?.cancelHideToolbar() : delegate?.hiddenBar(hidden: true, isAnimation: false)
+        if isSuspended {
+            delegate?.hiddenBar(hidden: false, isAnimation: false)
+        } else {
+            delegate?.hiddenBar(hidden: true, isAnimation: false)
+        }
     }
     
     /**< 点击穿透 */
