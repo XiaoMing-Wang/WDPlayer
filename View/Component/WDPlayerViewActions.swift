@@ -18,7 +18,7 @@ class WDPlayFastForward: UIView {
     var seconds: Int = 0 {
         didSet {
             iconImageView.image = UIImage(named: (seconds >= 0) ? "fastForward" : "retreatQuickly")
-            secondsLabel.text = "\(abs(seconds)) S"
+            secondsLabel.text = String(format: "%02zd S", abs(seconds))
         }
     }
 
@@ -39,7 +39,7 @@ class WDPlayFastForward: UIView {
 
         iconImageView.snp.makeConstraints { (make) in
             make.top.equalTo(5)
-            make.right.equalTo(snp.centerX).offset(-3)
+            make.right.equalTo(snp.centerX).offset(-3.5)
             make.width.height.equalTo(24)
         }
 
