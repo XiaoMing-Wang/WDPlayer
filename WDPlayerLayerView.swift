@@ -366,7 +366,9 @@ class WDPlayerLayerView: UIView {
         fullViewController.modalPresentationStyle = .fullScreen
         if let imaView = WDPlayerAssistant.makeImageWindow_play(rootViewController?.view) {
             fullConstraint()
-            rootViewController?.view.addSubview(imaView)
+            if currentViewController()?.navigationController?.navigationBar.isHidden == false {
+                rootViewController?.view.addSubview(imaView)
+            }
             rootViewController?.present(fullViewController, animated: true, completion: {
                 imaView.removeFromSuperview()
             })
@@ -483,6 +485,19 @@ class WDPlayerLayerView: UIView {
             youTbBar.isTracking = false
             insertSubview(youTbBar, aboveSubview: touchView)
         }
+    }
+    
+    func currentViewController(_ controller: UIViewController? = UIApplication.shared.keyWindow?.rootViewController) -> UIViewController? {
+        if let presented = controller?.presentedViewController {
+            return currentViewController(presented)
+        }
+        if let nav = controller as? UINavigationController {
+            return currentViewController(nav.topViewController)
+        }
+        if let tab = controller as? UITabBarController {
+            return currentViewController(tab.selectedViewController)
+        }
+        return controller
     }
     
     /**< 自动布局设置frame */
