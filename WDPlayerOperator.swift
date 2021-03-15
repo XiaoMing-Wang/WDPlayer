@@ -388,7 +388,7 @@ class WDPlayerOperator: NSObject {
                 
                 showPlayLoading()
                 playbackBufferEmpty()
-                //kLogPrint("playbackBufferEmpty")
+                kLogPrint("playbackBufferEmpty")
             }
         }
 
@@ -415,20 +415,20 @@ class WDPlayerOperator: NSObject {
                 getAssetDuration()
                 retryCount = false
                 delegate?.bufferSuccess?(play: self)
-                //kLogPrint("可以播放 :\(playURL!)")
+                kLogPrint("可以播放 :\(playURL!)")
                 
             } else if playerItem?.status == .readyToPlay, status == .buffer || status == .wait {
                 stop()
                 getAssetDuration()
                 retryCount = false
                 delegate?.bufferSuccess?(play: self)
-                //kLogPrint("可以播放 :\(playURL!)")
+                kLogPrint("可以播放 :\(playURL!)")
                                
             } else if playerItem?.status == .failed || playerItem?.status == .unknown {
                 
                 status = .fail
-                //kLogPrint("视频缓冲失败 :\(playURL!)")
-                //kLogPrint("视频缓冲失败 :\(playerItem!.error.debugDescription)")
+                kLogPrint("视频缓冲失败 :\(playURL!)")
+                kLogPrint("视频缓冲失败 :\(playerItem!.error.debugDescription)")
                 if (playerItem?.error as NSError?)?.code == -11829, retryCount == false, let _ = playURL {
                     retryCount = true
                     retryloade()

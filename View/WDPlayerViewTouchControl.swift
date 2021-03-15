@@ -41,13 +41,13 @@ class WDPlayerViewTouchControl: UIView {
     public var toolType: WDPlayerConf.ToolType = WDPlayerConf.toolType {
         didSet {
             thumView.removeFromSuperview()
-            progressTimeLabel.removeFromSuperview()
+            fastForward.removeFromSuperview()
             if isThumView() {
                 suspendIsHidden = false
                 addSubview(thumView)
             } else {
                 suspendIsHidden = true
-                addSubview(progressTimeLabel)
+                addSubview(fastForward)
             }
             automaticLayout()
         }
@@ -101,7 +101,7 @@ class WDPlayerViewTouchControl: UIView {
     /**< 隐藏 */
     func hidenThumView() {
         thumView.isHidden = true
-        progressTimeLabel.isHidden = true
+        fastForward.isHidden = true
     }
     
     /// 显示菊花
@@ -132,6 +132,7 @@ class WDPlayerViewTouchControl: UIView {
     fileprivate var panGestureRecognizer: UIPanGestureRecognizer? = nil
     fileprivate var volumeSlider: UISlider? = nil
     fileprivate var horizontalX: CGFloat = 0
+    fileprivate var horizontalXX: CGFloat = 0
     fileprivate var verticalY: CGFloat = 0
     fileprivate var slipInstantaneousTime: Int = 0
     fileprivate var slipInstantaneousEndTime: Int = 0
@@ -170,8 +171,7 @@ class WDPlayerViewTouchControl: UIView {
         if supportPanGestureRecognizer {
             addSubview(brightness)
             addSubview(volume)
-            //addSubview(thumView)
-            isThumView() ? addSubview(thumView) : addSubview(progressTimeLabel)
+            isThumView() ? addSubview(thumView) : addSubview(fastForward)
         }
         automaticLayout()
     }
@@ -205,14 +205,14 @@ class WDPlayerViewTouchControl: UIView {
             make.centerX.equalToSuperview()
             make.centerY.equalToSuperview().offset(8)
         }
-        
-        progressTimeLabel.text = "00:00"
-        hasSupview(progressTimeLabel)?.snp.remakeConstraints { (make) in
-            make.width.equalTo(150)
-            make.height.equalTo(30)
+
+        fastForward.timeStamp = "00:00 / 00:00"
+        hasSupview(fastForward)?.snp.remakeConstraints { (make) in
+            make.width.equalTo(125)
+            make.height.equalTo(48)
             make.centerX.centerY.equalToSuperview()
         }
-        
+
     }
     
     /**< 添加手势 */
@@ -288,6 +288,7 @@ class WDPlayerViewTouchControl: UIView {
                 }
             }
             volume.progress = Int(volumeValue * 100)
+            delegate?.hiddenBar(hidden: true, isAnimation: false)
             playerCancelPrevious(selector: #selector(hidenDelay), afterDelay: 2)
         }
     }
@@ -334,27 +335,20 @@ class WDPlayerViewTouchControl: UIView {
         volume.isHidden = true
         return volume
     }()
-    
+
     fileprivate lazy var thumView: WDPlayerThumView = {
         var thumView = WDPlayerThumView(delegate: delegate)
         thumView.progressTimeLabel.font = .systemFont(ofSize: 17)
         thumView.isHidden = true
         return thumView
     }()
-    
-    public lazy var progressTimeLabel: UILabel = {
-        var progressTimeLabel = UILabel()
-        progressTimeLabel.textAlignment = .center
-        progressTimeLabel.font = .systemFont(ofSize: 16)
-        progressTimeLabel.textColor = .white
-        progressTimeLabel.numberOfLines = 1
-        progressTimeLabel.isHidden = true
-        progressTimeLabel.backgroundColor = UIColor.black.withAlphaComponent(0.5)
-        progressTimeLabel.layer.cornerRadius = 5
-        progressTimeLabel.layer.masksToBounds = true
-        return progressTimeLabel
+
+    fileprivate lazy var fastForward: WDPlayFastForward = {
+        var fastForward = WDPlayFastForward()
+        fastForward.isHidden = true
+        return fastForward
     }()
-    
+
 }
 
 extension WDPlayerViewTouchControl {
@@ -374,6 +368,7 @@ extension WDPlayerViewTouchControl {
             hidenAllControl()
             panDirection = .free
             horizontalX = location.x
+            horizontalXX = location.x
             verticalY = location.y
             slipInstantaneousTime = 0
             slipInstantaneousEndTime = 0
@@ -382,64 +377,73 @@ extension WDPlayerViewTouchControl {
                 panDirection = .horizontal
                 slipInstantaneousTime = currentlTime
                 hasSupview(thumView)?.isHidden = false
-                hasSupview(progressTimeLabel)?.isHidden = false
+                hasSupview(fastForward)?.isHidden = false
+                
                 loadingView.alpha = 0
                 suspendButton.alpha = 0
+                delegate?.hiddenBar(hidden: true, isAnimation: false)
                 
             } else if let view = pan.view, location.x <= view.frame.size.width / 2.0 {
                 if isSupportVolumeBrightness == false, isFullScreen == false { return }
                 panDirection = .verticalLeft
                 brightness.isHidden = false
                 slipInstantaneousTime = brightness.progress
+                delegate?.hiddenBar(hidden: true, isAnimation: false)
                 
             } else {
                 if isSupportVolumeBrightness == false, isFullScreen == false { return }
                 panDirection = .verticalRight
                 volume.isHidden = false
                 slipInstantaneousTime = volume.progress
+                delegate?.hiddenBar(hidden: true, isAnimation: false)
             }
         }
 
         if (pan.state == .changed) {
-            
-            delegate?.hiddenBar(hidden: true, isAnimation: false)
             playerCancelPrevious(selector: #selector(hidenDelay), afterDelay: -1)
                         
             /**< 进度 */
             if panDirection == .horizontal {
                 
                 hasSupview(thumView)?.isHidden = false
-                hasSupview(progressTimeLabel)?.isHidden = false
+                hasSupview(fastForward)?.isHidden = false
                 
+                /**< 这个距离会在最小和最大处复位(会复位)  */
                 let displacement = location.x - horizontalX
                 let displacementABS = abs(displacement)
                 let width = pan.view?.frame.size.width ?? 0
                 let amplitude: Int = Int((displacementABS / width) * WDPlayerConf.playerProgressAdjustment)
-                
+
+                /**< 这个距离(不会复位) */
+                let displacementReal = location.x - horizontalXX
+                let amplitudeReal: Int = Int((displacementReal / width) * WDPlayerConf.playerProgressAdjustment)
+                fastForward.seconds = amplitudeReal
+              
                 /**< 快进 */
                 if displacement > 0 {
 
                     slipInstantaneousEndTime = min(slipInstantaneousTime + amplitude, totalTime)
-                    progressTimeLabel.text = WDPlayerAssistant.timeTranslate(slipInstantaneousEndTime) + "  /  " + WDPlayerAssistant.timeTranslate(totalTime)
                     thumView.currentlTime = slipInstantaneousEndTime
+                    fastForward.timeStamp = timeTogether(slipInstantaneousEndTime, totalTime)
                     delegate?.currentImage(currentTime: slipInstantaneousEndTime, results: {(image, second) in
                         self.thumView.currentlImage = image
                     })
-                                       
+                                      
+                    /**< 超过总时长 */
                     if slipInstantaneousEndTime >= totalTime {
                         slipInstantaneousTime = totalTime
                         horizontalX = location.x
                     }
 
                 } else {
-
+                    
                     slipInstantaneousEndTime = max(slipInstantaneousTime - amplitude, 0)
-                    progressTimeLabel.text = WDPlayerAssistant.timeTranslate(slipInstantaneousEndTime) + "  /  " + WDPlayerAssistant.timeTranslate(totalTime)
                     thumView.currentlTime = slipInstantaneousEndTime
-                    delegate?.currentImage(currentTime: slipInstantaneousEndTime, results: {(image, second) in
+                    fastForward.timeStamp = timeTogether(slipInstantaneousEndTime, totalTime)
+                    delegate?.currentImage(currentTime: slipInstantaneousEndTime, results: { (image, second) in
                         self.thumView.currentlImage = image
                     })
-                                        
+                    
                     if slipInstantaneousEndTime <= 0 {
                         slipInstantaneousTime = 0
                         horizontalX = location.x
@@ -486,8 +490,7 @@ extension WDPlayerViewTouchControl {
             
             /**< 音量 */
             if panDirection == .verticalRight {
-                
-                
+                                
                 volume.isHidden = false
                 let displacement = location.y - verticalY
                 let displacementABS = abs(displacement)
@@ -514,7 +517,7 @@ extension WDPlayerViewTouchControl {
             if pan.state == .ended, panDirection == .horizontal {
                 delegate?.eventValueChanged(currentlTime: slipInstantaneousEndTime, moving: false)
                 thumView.isHidden = true
-                progressTimeLabel.isHidden = true
+                fastForward.isHidden = true
                 
                 loadingView.alpha = 1
                 suspendButton.alpha = 1
@@ -527,6 +530,11 @@ extension WDPlayerViewTouchControl {
 
             self.panDirection = .free
         }
+    }
+
+    /**< 获取时间戳 */
+    func timeTogether(_ slip: Int, _ totalTime: Int) -> String {
+        return WDPlayerAssistant.timeTranslate(slipInstantaneousEndTime) + "  /  " + WDPlayerAssistant.timeTranslate(totalTime)
     }
     
     func hidenAllControl() {

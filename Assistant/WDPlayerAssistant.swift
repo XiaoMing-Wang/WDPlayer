@@ -36,6 +36,7 @@ class WDPlayerAssistant: NSObject {
             return String(format: "%02zd:%02zd", minutes, seconds)
         }
     }
+        
 
     /// window中的位置
     /// - Parameter view: view
