@@ -33,6 +33,7 @@ class WDPlayFastForward: UIView {
     }
     
     fileprivate func automaticLayout() {
+        
         addSubview(iconImageView)
         addSubview(secondsLabel)
         addSubview(timeStampLabel)
