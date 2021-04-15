@@ -82,10 +82,10 @@ class WDPlayerAssistant: NSObject {
         guard let imageView = imageView, let forkey = forkey else { return }
         
         /**< 本地 */
-        if  local, ImageCache.default.retrieveImageInMemoryCache(forKey: forkey) == nil,
-            ImageCache.default.retrieveImageInDiskCache(forKey: forkey) == nil {
-            return
-        }
+//        if  local, ImageCache.default.retrieveImageInMemoryCache(forKey: forkey) == nil,
+//            ImageCache.default.retrieveImageInDiskCache(forKey: forkey) == nil {
+//            return
+//        }
         
         if let url = URL(string: forkey) {
             imageView.kf.setImage(with: url)

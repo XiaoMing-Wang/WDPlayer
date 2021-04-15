@@ -23,11 +23,6 @@ class WDPlayerThumView: UIView {
         }
     }
     
-    func showLoading() {
-        indicatorView.isHidden = false
-        indicatorView.startAnimating()
-    }
-    
     fileprivate weak var delegate: WPPlayerViewBaseProtocol? = nil
     convenience init (delegate: WPPlayerViewBaseProtocol?) {
         self.init()
